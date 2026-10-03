@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CS2 Promo Particle Slider</title>
     <style>
-        /* ВШИТЫЕ БАЗОВЫЕ СТИЛИ SWIPER, ЧТОБЫ СЛАЙДЫ НЕ ВСТАВАЛИ ВЕРТИКАЛЬНО */
+        /* ВШИТЫЕ БАЗОВЫЕ СТИЛИ SWIPER */
         .swiper{margin-left:auto;margin-right:auto;position:relative;overflow:hidden;list-style:none;padding:0;z-index:1;display:block}
         .swiper-wrapper{position:relative;width:100%;height:100%;z-index:1;display:flex;transition-property:transform;transition-timing-function:var(--swiper-wrapper-transition-timing-function,initial);box-sizing:content-box}
         .swiper-slide{flex-shrink:0;width:100%;height:100%;position:relative;transition-property:transform;display:block}
@@ -45,7 +45,7 @@
             overflow: hidden;
             height: 450px; 
             position: relative;
-            width: 340px; /* Фиксированная ширина карточек, чтобы они не растягивались на весь экран */
+            width: 340px; 
         }
 
         .weapon-3d-scene {
@@ -62,18 +62,18 @@
             height: 100%;
         }
 
-        /* Заменили внешние картинки на красивые неоновые фоны-заглушки, чтобы не было значков разбитых изображений */
         .promo-card-img-placeholder {
             width: 100%;
             height: 240px;
-            background: linear-gradient(45deg, #1a0033, #001a33);
+            background: linear-gradient(45deg, #110322, #031429);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.25);
             font-size: 14px;
             font-weight: bold;
             letter-spacing: 2px;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
         }
 
         .promo-card-inner {
@@ -202,8 +202,8 @@
 </div>
 
 <script>
-    // ВШИТЫЙ МИНИ-СКРИПТ SWIPER (БЕЗ ВНЕШНИХ ССЫЛОК И ЗАГРУЗОК)
-    !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):(e="undefined"!=typeof globalThis?globalThis:e||self).Swiper=t()}(this,(function(){"use strict";return function(e,t){var n=this;n.el=document.querySelector(e);var r=n.el.querySelector(".swiper-wrapper"),i=n.el.querySelectorAll(".swiper-slide"),o=0,s=t.spaceBetween||0;n.init=function(){i.forEach((function(e){e.style.width=t.breakpoints?t.breakpoints[1024].slidesPerView:"340px",e.style.marginRight=s+"px"}));var e=document.querySelector(t.navigation.nextEl),na=document.querySelector(t.navigation.prevEl);e&&e.addEventListener("click",(function(){n.slideNext()})),na&&na.addEventListener("click",(function(){n.slidePrev()}))},n.slideNext=function(){o=Math.min(o+1,i.length-1),n.update()},n.slidePrev=function(){o=Math.max(o-1,0),n.update()},n.update=function(){var e=i[0].clientWidth+s;r.style.transform="translate3d(-"+o*e+"px, 0px, 0px)",r.style.transition="transform 0.3s ease"},n.init()}}));
+    // ВШИТЫЙ МИНИ-СКРИПТ SWIPER
+    !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):(e="undefined"!=typeof globalThis?globalThis:e||self).Swiper=t()}(this,(function(){"use strict";return function(e,t){var n=this;n.el=document.querySelector(e);var r=n.el.querySelector(".swiper-wrapper"),i=n.el.querySelectorAll(".swiper-slide"),o=0,s=t.spaceBetween||0;n.init=function(){i.forEach((function(e){e.style.width=t.breakpoints?t.breakpoints.slidesPerView:"340px",e.style.marginRight=s+"px"}));var e=document.querySelector(t.navigation.nextEl),na=document.querySelector(t.navigation.prevEl);e&&e.addEventListener("click",(function(){n.slideNext()})),na&&na.addEventListener("click",(function(){n.slidePrev()}))},n.slideNext=function(){o=Math.min(o+1,i.length-1),n.update()},n.slidePrev=function(){o=Math.max(o-1,0),n.update()},n.update=function(){var e=340+s;r.style.transform="translate3d(-"+o*e+"px, 0px, 0px)",r.style.transition="transform 0.3s ease"},n.init()}}));
 
     // НАШ ВСТРОЕННЫЙ 3D-ДВИЖОК ДЛЯ ЧАСТИЦ
     const threeCode = `
@@ -230,3 +230,5 @@
     };}
     function BufferGeometry(){this.attributes={};}BufferGeometry.prototype={setAttribute:function(n,a){this.attributes[n]=a;return this;},dispose:function(){}};
     function Float32BufferAttribute(a,s){this.array=a;this.itemSize=s;}
+    function PointsMaterial(){this.vertexColors=true;}
+    function Points(g,m){this.geometry=g;this.material=m;this.rotation={y:0};}
