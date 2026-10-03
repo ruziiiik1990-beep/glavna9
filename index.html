@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CS2 Promo Particle Slider</title>
-    <!-- ИСПРАВЛЕНО: Подключаем стили Swiper через зеркальный надежный CDN cdnjs -->
+    <!-- Подключаем стили Swiper через стабильный CDN cdnjs -->
     <link rel="stylesheet" href="https://cloudflare.com" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -157,7 +157,7 @@
     <div class="swiper promo-slider">
         <div class="swiper-wrapper">
             
-            <!-- СЛАЙД 1: 3D-рендер частиц (Перебирает твои 20 скинов) -->
+            <!-- СЛАЙД 1: 3D-рендер частиц (Подтягивает картинки из репозитория akkolimaga) -->
             <div class="swiper-slide promo-card">
                 <div class="weapon-3d-scene">
                     <canvas class="webgl"></canvas>
@@ -204,10 +204,10 @@
     </button>
 </div>
 
-<!-- ИСПРАВЛЕНО: Подключаем сам JS код Swiper через стабильный и незаблокированный cdnjs -->
+<!-- Подключаем JS код Swiper через cdnjs -->
 <script src="https://cloudflare.com"></script>
 <script>
-    // НАШ ХИТРЫЙ ВСТРОЕННЫЙ ДВИЖОК ДЛЯ ПОЛНОГО ОБХОДА ЦЕНЗУРЫ uCOZ И БРАУЗЕРОВ
+    // НАШ ВСТРОЕННЫЙ ДВИЖОК ДЛЯ ПОЛНОГО ОБХОДА БЛОКИРОВОК uCOZ
     const threeCode = `
     (function(g,f){typeof exports==='object'&&typeof module!=='undefined'?f(exports):typeof define==='function'&&define.amd?define(['exports'],f):(g=typeof globalThis!=='undefined'?globalThis:g||self,f(g.THREE={}));})(this,function(exports){'use strict';
     function Scene(){this.type="Scene";this.children=[];}
