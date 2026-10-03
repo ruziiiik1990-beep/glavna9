@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CS2 Promo Particle Slider</title>
-    <!-- Подключаем стили Swiper через стабильный CDN cdnjs -->
-    <link rel="stylesheet" href="https://cloudflare.com" />
     <style>
+        /* ВШИТЫЕ БАЗОВЫЕ СТИЛИ SWIPER, ЧТОБЫ СЛАЙДЫ НЕ ВСТАВАЛИ ВЕРТИКАЛЬНО */
+        .swiper{margin-left:auto;margin-right:auto;position:relative;overflow:hidden;list-style:none;padding:0;z-index:1;display:block}
+        .swiper-wrapper{position:relative;width:100%;height:100%;z-index:1;display:flex;transition-property:transform;transition-timing-function:var(--swiper-wrapper-transition-timing-function,initial);box-sizing:content-box}
+        .swiper-slide{flex-shrink:0;width:100%;height:100%;position:relative;transition-property:transform;display:block}
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        /* Главный контейнер на весь экран фрейма */
         body { 
             background: #050505; 
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -21,7 +23,6 @@
             overflow: hidden;
         }
 
-        /* Оболочка слайдера */
         .catalog-slider-container {
             position: relative;
             width: 100%;
@@ -35,7 +36,6 @@
             border-radius: 16px;
         }
 
-        /* Стили карточек (слайдов) */
         .promo-card {
             background: #111111;
             border: 1px solid rgba(255, 255, 255, 0.05);
@@ -45,9 +45,9 @@
             overflow: hidden;
             height: 450px; 
             position: relative;
+            width: 340px; /* Фиксированная ширина карточек, чтобы они не растягивались на весь экран */
         }
 
-        /* 3D сцена для частиц */
         .weapon-3d-scene {
             width: 100%;
             height: 240px;
@@ -62,15 +62,20 @@
             height: 100%;
         }
 
-        /* Стандартные картинки для 2 и 3 слайдов */
-        .promo-card-img {
+        /* Заменили внешние картинки на красивые неоновые фоны-заглушки, чтобы не было значков разбитых изображений */
+        .promo-card-img-placeholder {
             width: 100%;
             height: 240px;
-            object-fit: cover;
-            background: #0d0d0d;
+            background: linear-gradient(45deg, #1a0033, #001a33);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.2);
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 2px;
         }
 
-        /* Контентная часть под картинками */
         .promo-card-inner {
             padding: 24px;
             flex-grow: 1;
@@ -82,7 +87,7 @@
 
         .promo-card-content h2 {
             color: #ffffff;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 600;
             margin-bottom: 10px;
             line-height: 1.3;
@@ -90,12 +95,11 @@
 
         .promo-card-content p {
             color: #aaaaaa;
-            font-size: 13px;
+            font-size: 12px;
             line-height: 1.5;
             margin-bottom: 20px;
         }
 
-        /* Кнопка "Read More" */
         .promo-btn {
             display: inline-block;
             align-self: flex-start;
@@ -103,16 +107,13 @@
             color: #000000;
             text-decoration: none;
             padding: 10px 22px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: bold;
             border-radius: 8px;
             transition: background 0.2s ease;
         }
-        .promo-btn:hover {
-            background: #cccccc;
-        }
+        .promo-btn:hover { background: #cccccc; }
 
-        /* Стрелки навигации по бокам слайдера */
         .swiper-btn {
             position: absolute;
             top: 50%;
@@ -128,7 +129,6 @@
             justify-content: center;
             z-index: 10;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            transition: background 0.2s ease;
         }
         .swiper-btn:hover { background: #eeeeee; }
         .swiper-btn-prev { left: 0; }
@@ -148,16 +148,14 @@
 <body>
 
 <div class="catalog-slider-container">
-    <!-- Левая стрелка -->
     <button class="swiper-btn swiper-btn-prev">
         <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
     </button>
 
-    <!-- Главный слайдер Swiper -->
     <div class="swiper promo-slider">
         <div class="swiper-wrapper">
             
-            <!-- СЛАЙД 1: 3D-рендер частиц (Подтягивает картинки из репозитория akkolimaga) -->
+            <!-- СЛАЙД 1: 3D Анимация Оружия из Частиц -->
             <div class="swiper-slide promo-card">
                 <div class="weapon-3d-scene">
                     <canvas class="webgl"></canvas>
@@ -171,9 +169,9 @@
                 </div>
             </div>
 
-            <!-- СЛАЙД 2: Стандартная карточка -->
+            <!-- СЛАЙД 2 -->
             <div class="swiper-slide promo-card">
-                <img class="promo-card-img" src="https://unsplash.com" alt="slide-image 2">
+                <div class="promo-card-img-placeholder">CASE OPENING</div>
                 <div class="promo-card-inner">
                     <div class="promo-card-content">
                         <h2>Fresh From the Oven: Your Gateway to Latest Trends!</h2>
@@ -183,9 +181,9 @@
                 </div>
             </div>
 
-            <!-- СЛАЙД 3: Стандартная карточка -->
+            <!-- СЛАЙД 3 -->
             <div class="swiper-slide promo-card">
-                <img class="promo-card-img" src="https://unsplash.com" alt="slide-image 3">
+                <div class="promo-card-img-placeholder">STORE SKINS</div>
                 <div class="promo-card-inner">
                     <div class="promo-card-content">
                         <h2>Unveiling Wonders: Dive into a Realm of Endless Fascination!</h2>
@@ -198,16 +196,16 @@
         </div>
     </div>
 
-    <!-- Правая стрелка -->
     <button class="swiper-btn swiper-btn-next">
         <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
     </button>
 </div>
 
-<!-- Подключаем JS код Swiper через cdnjs -->
-<script src="https://cloudflare.com"></script>
 <script>
-    // НАШ ВСТРОЕННЫЙ ДВИЖОК ДЛЯ ПОЛНОГО ОБХОДА БЛОКИРОВОК uCOZ
+    // ВШИТЫЙ МИНИ-СКРИПТ SWIPER (БЕЗ ВНЕШНИХ ССЫЛОК И ЗАГРУЗОК)
+    !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?module.exports=t():"function"==typeof define&&define.amd?define(t):(e="undefined"!=typeof globalThis?globalThis:e||self).Swiper=t()}(this,(function(){"use strict";return function(e,t){var n=this;n.el=document.querySelector(e);var r=n.el.querySelector(".swiper-wrapper"),i=n.el.querySelectorAll(".swiper-slide"),o=0,s=t.spaceBetween||0;n.init=function(){i.forEach((function(e){e.style.width=t.breakpoints?t.breakpoints[1024].slidesPerView:"340px",e.style.marginRight=s+"px"}));var e=document.querySelector(t.navigation.nextEl),na=document.querySelector(t.navigation.prevEl);e&&e.addEventListener("click",(function(){n.slideNext()})),na&&na.addEventListener("click",(function(){n.slidePrev()}))},n.slideNext=function(){o=Math.min(o+1,i.length-1),n.update()},n.slidePrev=function(){o=Math.max(o-1,0),n.update()},n.update=function(){var e=i[0].clientWidth+s;r.style.transform="translate3d(-"+o*e+"px, 0px, 0px)",r.style.transition="transform 0.3s ease"},n.init()}}));
+
+    // НАШ ВСТРОЕННЫЙ 3D-ДВИЖОК ДЛЯ ЧАСТИЦ
     const threeCode = `
     (function(g,f){typeof exports==='object'&&typeof module!=='undefined'?f(exports):typeof define==='function'&&define.amd?define(['exports'],f):(g=typeof globalThis!=='undefined'?globalThis:g||self,f(g.THREE={}));})(this,function(exports){'use strict';
     function Scene(){this.type="Scene";this.children=[];}
@@ -222,30 +220,13 @@
             var rotY=obj.rotation.y;var cos=Math.cos(rotY),sin=Math.sin(rotY);
             for(var j=0;j<pos.length;j+=3){
                 var rx=pos[j]*cos-pos[j+2]*sin;var rz=pos[j+2]*cos+pos[j]*sin;var p=400/(400+rz*20);
-                var sx=cx+rx*145*p;var sy=cy+pos[j+1]*145*p;
+                var sx=cx+rx*135*p;var sy=cy+pos[j+1]*135*p;
                 if(sx>=0&&sx<=_c.width&&sy>=0&&sy<=_c.height){
                     _ctx.fillStyle='rgb('+Math.floor(col[j]*255)+','+Math.floor(col[j+1]*255)+','+Math.floor(col[j+2]*255)+')';
-                    _ctx.fillRect(sx,sy,2.5*p,2.5*p);
+                    _ctx.fillRect(sx,sy,2.3*p,2.3*p);
                 }
             }
         }
     };}
     function BufferGeometry(){this.attributes={};}BufferGeometry.prototype={setAttribute:function(n,a){this.attributes[n]=a;return this;},dispose:function(){}};
     function Float32BufferAttribute(a,s){this.array=a;this.itemSize=s;}
-    function PointsMaterial(){this.vertexColors=true;}
-    function Points(g,m){this.geometry=g;this.material=m;this.rotation={y:0};}
-    function Clock(){this.time=performance.now();}Clock.prototype={getElapsedTime:function(){return (performance.now()-this.time)/1000;}};
-    exports.Scene=Scene;exports.PerspectiveCamera=PerspectiveCamera;exports.WebGLRenderer=WebGLRenderer;exports.BufferGeometry=BufferGeometry;exports.Float32BufferAttribute=Float32BufferAttribute;exports.PointsMaterial=PointsMaterial;exports.Points=Points;exports.Clock=Clock;
-    });`;
-
-    const blob = new Blob([threeCode], { type: 'application/javascript' });
-    const script = document.createElement('script');
-    script.src = URL.createObjectURL(blob);
-    
-    script.onload = () => { initParticlesApp(); };
-    document.head.appendChild(script);
-
-    function initParticlesApp() {
-        const canvas = document.querySelector('canvas.webgl');
-        const scene = new THREE.Scene();
-
