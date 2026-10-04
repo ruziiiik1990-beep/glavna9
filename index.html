@@ -61,7 +61,6 @@
         const canvas = document.querySelector('canvas.webgl');
         const scene = new THREE.Scene();
 
-        // ТВOЙ ПОЛНЫЙ ПРОВЕРЕННЫЙ СПИСОК ИМЕН
         const weaponsList = [
             'ak-47_kolymaga.png',
             'AK-47_diletanti.png',
@@ -91,9 +90,11 @@
         let points = null;
 
         let targetPositions = [];
-        let currentPositions = [];
         let colors = [];
         let isChanging = false;
+        
+        // Переменная для отслеживания времени старта текущей пушки
+        let weaponStartTime = performance.now(); 
 
         const sizes = { width: window.innerWidth, height: window.innerHeight };
         const camera = new THREE.PerspectiveCamera();
@@ -101,7 +102,6 @@
         renderer.setSize(sizes.width, sizes.height);
 
         const imgCanvas = document.createElement('canvas');
-        // ИСПРАВЛЕНО: Добавили параметр willReadFrequently, чтобы убрать предупреждение и ускорить getImageData
         const ctx = imgCanvas.getContext('2d', { willReadFrequently: true });
 
         const loadWeaponParticles = (fileName) => {
@@ -109,7 +109,7 @@
 
             const image = new Image();
             image.crossOrigin = "anonymous";
-            image.src = fileName; 
+            image.src = "https://moy.su" + fileName; 
 
             image.onload = () => {
                 if(points !== null){
@@ -118,7 +118,6 @@
                 }
 
                 targetPositions = [];
-                currentPositions = [];
                 colors = [];
 
                 const isAWP = fileName.toLowerCase().includes('awp');
@@ -139,26 +138,26 @@
                             const tX = (x - width / 2) * scaleFactor;
                             const tY = (y - height / 2) * scaleFactor;
                             const tZ = (Math.random() - 0.5) * 0.12;
+                            
+                            // Записываем только итоговую форму оружия
                             targetPositions.push(tX, tY, tZ);
-
-                            // Падение частиц сверху вниз
-                            currentPositions.push(
-                                tX + (Math.random() - 0.5) * 1.5,
-                                tY - 5 - Math.random() * 4, 
-                                tZ + (Math.random() - 0.5) * 1.5
-                            );
                             colors.push(imgData[index]/255, imgData[index+1]/255, imgData[index+2]/255);
                         }
                     }
                 }
 
                 geometry = new THREE.BufferGeometry();
-                geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(currentPositions), 3));
+                
+                // Изначально создаем пустой массив позиций, он заполнится в tick()
+                const initPositions = new Float32Array(targetPositions.length);
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(initPositions, 3));
                 geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
                 material = new THREE.PointsMaterial();
                 points = new THREE.Points(geometry, material);
                 scene.add(points);
                 
+                // Фиксируем точное время старта показа новой пушки
+                weaponStartTime = performance.now();
                 isChanging = false;
             };
 
@@ -173,11 +172,10 @@
             loadWeaponParticles(weaponsList[currentWeaponIndex]);
         };
 
-        // Старт цикла
         loadWeaponParticles(weaponsList[currentWeaponIndex]);
 
-        // Интервал смены скинов (9 секунд)
-        setInterval(nextWeapon, 9000);
+        // Интервал смены скинов теперь жестко равен 6 секундам (6000ms)
+        setInterval(nextWeapon, 6000);
 
         window.addEventListener('resize', () => {
             sizes.width = window.innerWidth;
@@ -186,20 +184,35 @@
         });
 
         const clock = new THREE.Clock();
+        
         const tick = () => {
-            if (points && currentPositions.length > 0) {
+            if (points && targetPositions.length > 0 && !isChanging) {
                 const posArray = points.geometry.attributes.position.array;
-                for (let i = 0; i < posArray.length; i++) {
-                    posArray[i] += (targetPositions[i] - posArray[i]) * 0.05;
-                }
-                points.rotation.y = clock.getElapsedTime() * 0.45; 
-            }
-            renderer.render(scene, camera);
-            window.requestAnimationFrame(tick);
-        };
-        tick();
-    }
-</script>
+                
+                // Вычисляем, сколько секунд прошло с момента появления текущей пушки
+                const elapsed = (performance.now() - weaponStartTime) / 1000; 
+                
+                let progress = 0;
+                let currentYOffset = 0;
+                let currentScale = 1;
 
-</body>
-</html>
+                if (elapsed <= 2.5) {
+                    // Фаза 1 (От 0 до 2.5 сек): Все частицы ОДНОВРЕМЕННО летят издалека сверху к центру
+                    progress = elapsed / 2.5;
+                    // Плавное торможение (Цифры: от -8px до 0px)
+                    currentYOffset = -8 * (1 - Math.sin(progress * Math.PI / 2)); 
+                    // Приближение издалека (Масштаб: от 0.1 до 1.0)
+                    currentScale = 0.1 + 0.9 * Math.sin(progress * Math.PI / 2);
+                    
+                } else if (elapsed > 2.5 && elapsed <= 4.0) {
+                    // Фаза 2 (От 2.5 до 4.0 сек): Замирание по центру в нормальном размере
+                    currentYOffset = 0;
+                    currentScale = 1;
+                    
+                } else if (elapsed > 4.0 && elapsed <= 6.0) {
+                    // Фаза 3 (От 4.0 до 6.0 сек): Все частицы ОДНОВРЕМЕННО уходят вниз
+                    progress = (elapsed - 4.0) / 2.0;
+                    // Ускорение вниз (Цифры: от 0px до 10px)
+                    currentYOffset = 10 * Math.pow(progress, 2); 
+                    // Небольшое отдаление при уходе (по желанию, можно оставить 1)
+                    currentScale = 1.0 - 0.4 * Math.pow(progress, 2);
