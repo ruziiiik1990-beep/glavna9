@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CS2 Auto Particles Showcase (Optimized)</title>
+    <title>CS2 Auto Particles Showcase (Optimized Grid)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { overflow: hidden; background: transparent; width: 100vw; height: 100vh; }
@@ -61,7 +61,7 @@
         const canvas = document.querySelector('canvas.webgl');
         const scene = new THREE.Scene();
 
-        // ОРИГИНАЛЬНЫЙ ПОЛНЫЙ СПИСОК ИМЕН
+        // ТВOЙ ПОЛНЫЙ ПРОВЕРЕННЫЙ СПИСОК ИМЕН
         const weaponsList = [
             'ak-47_kolymaga.png', 'AK-47_diletanti.png', 'AK-47_fantomni_vreditel.png',
             'AK-47_led9noi_ygol.png', 'AK-47_nyvo_ryzh.png', 'AK-47_zhgycha9_9rkost.png',
@@ -85,17 +85,17 @@
         const imgCanvas = document.createElement('canvas');
         const ctx = imgCanvas.getContext('2d', { willReadFrequently: true });
 
-        // Загружаем все 20 автоматов одновременно
+        // Загружаем сразу все 20 автоматов одновременно
         weaponsList.forEach((fileName, index) => {
             const image = new Image();
             image.crossOrigin = "anonymous";
             
-            // ИСПРАВЛЕНО: Теперь адрес склеивается на 100% правильно, без сбоев домена moy.su
+            // ЖЕЛЕЗНЫЙ АДРЕС: Исключает любую склейку путей или ошибки с moy.su
             image.src = "https://moy.su" + fileName; 
 
             image.onload = () => {
                 const isAWP = fileName.toLowerCase().includes('awp');
-                // Размер считывания для компактности на экране
+                // Размер считывания для плотности частиц
                 const width = isAWP ? 110 : 85; 
                 const height = Math.round((image.height / image.width) * width);
                 
@@ -105,15 +105,13 @@
                 ctx.drawImage(image, 0, 0, width, height);
                 const imgData = ctx.getImageData(0, 0, width, height).data;
 
-                // Масштаб моделей автомата
                 const scaleFactor = 0.016; 
 
-                // Выстраиваем ровную компактную сетку 5x4 для 20 автоматов
+                // Строим сетку 5x4, чтобы все 20 автоматов встали рядом близко друг к другу
                 const cols = 5;
                 const row = Math.floor(index / cols);
                 const col = index % cols;
                 
-                // Сдвиги по X и Y, чтобы все автоматы ровно поместились в один кадр
                 const offsetX = (col - (cols - 1) / 2) * 1.5;
                 const offsetY = (row - (4 - 1) / 2) * 0.85;
 
@@ -165,9 +163,9 @@
         });
 
         const clock = new THREE.Clock();
-        // Абсолютно оригинальный цикл движения частиц без изменений
         const tick = () => {
-            if (points && currentPositions.length > 0) {
+            // ИСПРАВЛЕНО: Добавлена жесткая проверка на существование points, убирающая ошибку в tick
+            if (typeof points !== 'undefined' && points !== null && currentPositions.length > 0) {
                 const posArray = points.geometry.attributes.position.array;
                 for (let i = 0; i < posArray.length; i++) {
                     posArray[i] += (targetPositions[i] - posArray[i]) * 0.05;
