@@ -6,7 +6,7 @@
     <title>CS2 Auto Particles Showcase (Optimized)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { overflow: hidden; background: #09090b; width: 100vw; height: 100vh; }
+        body { overflow: hidden; background: transparent; width: 100vw; height: 100vh; }
         canvas { display: block; width: 100%; height: 100%; background: transparent; }
     </style>
 </head>
@@ -14,7 +14,7 @@
 
 <canvas class="webgl"></canvas>
 
-<!-- Подключаем официальную стабильную библиотеку Three.js, чтобы код не обрывался -->
+<!-- Подключаем стабильную библиотеку Three.js -->
 <script src="https://cloudflare.com"></script>
 
 <script>
@@ -22,7 +22,7 @@
         const canvas = document.querySelector('canvas.webgl');
         const scene = new THREE.Scene();
 
-        // Полный список имен твоих скинов (исправлен путь для прямой загрузки)
+        // Полный список имен твоих скинов
         const weaponsList = [
             'ak-47_kolymaga.png', 'AK-47_diletanti.png', 'AK-47_fantomni_vreditel.png',
             'AK-47_led9noi_ygol.png', 'AK-47_nyvo_ryzh.png', 'AK-47_zhgycha9_9rkost.png',
@@ -44,17 +44,19 @@
 
         const sizes = { width: window.innerWidth, height: window.innerHeight };
         
-        // Создаем камеру
+        // Создаем и настраиваем перспективную камеру
         const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100);
-        camera.position.z = 6; 
-        
-        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
+        camera.position.set(0, 0, 6);
+        camera.lookAt(scene.position); // ИСПРАВЛЕНО: Камера теперь гарантированно смотрит в центр сцены
+
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
         renderer.setSize(sizes.width, sizes.height);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
         const imgCanvas = document.createElement('canvas');
         const ctx = imgCanvas.getContext('2d', { willReadFrequently: true });
 
-        // Запускаем одновременную прогрузку всех 20 автоматов
+        // Одновременная загрузка всех 20 автоматов
         weaponsList.forEach((fileName, index) => {
             const image = new Image();
             image.crossOrigin = "anonymous";
@@ -73,7 +75,7 @@
 
                 const scaleFactor = 0.022; 
 
-                // Выстраиваем центры пушек по красивой вихревой траектории галактики
+                // Выстраиваем центры пушек по круговому вихрю галактики
                 const spiralRadius = 1.2 + (index * 0.09); 
                 const spiralAngle = index * (Math.PI * 2 / weaponsList.length) * 2.2; 
                 
@@ -84,19 +86,19 @@
                     for (let x = 0; x < width; x++) {
                         const pixelIndex = (y * width + x) * 4;
                         if (imgData[pixelIndex + 3] > 50) {
-                            // Сохраняем оригинальный вид автомата (без кривизны)
+                            // Сохраняем правильный, неискаженный вид автомата
                             const locX = (x - width / 2) * scaleFactor;
                             const locY = -(y - height / 2) * scaleFactor; 
                             const locZ = (Math.random() - 0.5) * 0.05;
 
-                            // Переносим готовую модель на её место в спирали
+                            // Смещаем модель на её координаты в общей спирали
                             const tX = centerX + locX;
                             const tY = centerY + locY;
                             const tZ = locZ;
 
                             globalTargetPositions.push(tX, tY, tZ);
 
-                            // Красивый космический разброс частиц на старте
+                            // Космический разброс частиц на старте
                             globalCurrentPositions.push(
                                 centerX * 0.2 + (Math.random() - 0.5) * 5.0,
                                 centerY * 0.2 + (Math.random() - 0.5) * 5.0,
@@ -124,9 +126,10 @@
             geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(globalColors), 3));
             
             material = new THREE.PointsMaterial({
-                size: 0.035,
+                size: 0.04,
                 vertexColors: true,
-                transparent: true
+                transparent: true,
+                opacity: 1.0
             });
             
             points = new THREE.Points(geometry, material);
@@ -145,8 +148,9 @@
         const tick = () => {
             const time = clock.getElapsedTime();
             
-            // Замедленная в 4 раза плавная пульсация зума камеры
+            // Замедленный в 4 раза волновой зум камеры по оси Z
             camera.position.z = 6.2 + Math.sin(time * 0.375) * 1.6; 
+            camera.lookAt(scene.position); // Поддерживаем фокус при изменении зума
 
             if (points && globalCurrentPositions.length > 0) {
                 const posArray = points.geometry.attributes.position.array;
@@ -156,12 +160,12 @@
                     const ty = globalTargetPositions[i+1];
                     const tz = globalTargetPositions[i+2];
 
-                    // Вращение всего галактического диска из автоматов
+                    // Вращение всего галактического диска из пушек
                     const angle = time * 0.2; 
                     const rotatedX = tx * Math.cos(angle) - ty * Math.sin(angle);
                     const rotatedY = tx * Math.sin(angle) + ty * Math.cos(angle);
 
-                    // Сборка частиц в неискаженные очертания пушек
+                    // Сборка частиц в ровные очертания пушек
                     posArray[i] += (rotatedX - posArray[i]) * 0.03;
                     posArray[i+1] += (rotatedY - posArray[i+1]) * 0.03;
                     posArray[i+2] += (tz - posArray[i+2]) * 0.03;
