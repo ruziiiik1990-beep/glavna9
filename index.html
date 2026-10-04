@@ -137,8 +137,8 @@
                         if (imgData[index + 3] > 40) {
                             const tX = (x - width / 2) * scaleFactor;
                             
-                            // ИСПРАВЛЕНО: Добавлен минус перед скобкой, чтобы перевернуть модель в правильное положение
-                            const tY = -(y - height / 2) * scaleFactor;
+                            // ВОЗВРАЩЕНО В ИСХОДНОЕ СОСТОЯНИЕ (Без минуса перед скобкой)
+                            const tY = (y - height / 2) * scaleFactor;
                             
                             const tZ = (Math.random() - 0.5) * 0.12;
                             targetPositions.push(tX, tY, tZ);
@@ -175,10 +175,7 @@
             loadWeaponParticles(weaponsList[currentWeaponIndex]);
         };
 
-        // Старт цикла
         loadWeaponParticles(weaponsList[currentWeaponIndex]);
-
-        // Интервал смены скинов (9 секунд)
         setInterval(nextWeapon, 9000);
 
         window.addEventListener('resize', () => {
