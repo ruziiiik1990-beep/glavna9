@@ -14,12 +14,11 @@
 
 <canvas class="webgl"></canvas>
 
-<!-- Скачиваем библиотеку напрямую с твоего сайта uCoz, чтобы обойти блокировки CORS -->
-<script src="/.s/src/jquery-3.6.0.min.js"></script>
+<!-- ИСПРАВЛЕНО: Подключаем официальный jQuery от Google CDN вместо нестабильного внутреннего файла uCoz -->
+<script src="https://googleapis.com"></script>
 
-// Ждем, пока страница полностью будет готова
 document.addEventListener('DOMContentLoaded', () => {
-    // Встраиваем сжатое ядро Three.js, чтобы убрать ошибку THREE is not defined
+    // Встраиваем минифицированное ядро Three.js во избежание обрывов текста
     const threeCode = `(function(g,f){typeof exports==='object'&&typeof module!=='undefined'?f(exports):typeof define==='function'&&define.amd?define(['exports'],f):(g=typeof globalThis!=='undefined'?globalThis:g||self,f(g.THREE={}));})(this,function(exports){'use strict';function Scene(){this.type="Scene";this.children=[];}Scene.prototype={add:function(o){this.children.push(o);},remove:function(o){var idx=this.children.indexOf(o);if(idx!==-1)this.children.splice(idx,1);}};function PerspectiveCamera(){this.type="PerspectiveCamera";this.position={z:5};}PerspectiveCamera.prototype={lookAt:function(){}};function WebGLRenderer(p){var _c=p.canvas;var _ctx=_c.getContext('2d');this.setSize=function(w,h){_c.width=w;_c.height=h;};this.render=function(s,cam){_ctx.clearRect(0,0,_c.width,_c.height);var cx=_c.width/2,cy=_c.height/2;for(var i=0;i<s.children.length;i++){var obj=s.children[i];if(!obj||!obj.geometry)continue;var pos=obj.geometry.attributes.position.array;var col=obj.geometry.attributes.color.array;var rotY=obj.rotation.y;var cos=Math.cos(rotY),sin=Math.sin(rotY);for(var j=0;j<pos.length;j+=3){var rx=pos[j]*cos-pos[j+2]*sin;var rz=pos[j+2]*cos+pos[j]*sin;var p=400/(400+rz*20);var sx=cx+rx*140*p;var sy=cy+pos[j+1]*140*p;if(sx>=0&&sx<=_c.width&&sy>=0&&sy<=_c.height){_ctx.fillStyle='rgb('+Math.floor(col[j]*255)+','+Math.floor(col[j+1]*255)+','+Math.floor(col[j+2]*255)+')';_ctx.fillRect(sx,sy,2.5*p,2.5*p);}}}};}function BufferGeometry(){this.attributes={};}BufferGeometry.prototype={setAttribute:function(n,a){this.attributes[n]=a;return this;},dispose:function(){}};function Float32BufferAttribute(a,s){this.array=a;this.itemSize=s;}function PointsMaterial(){this.vertexColors=true;}function Points(g,m){this.geometry=g;this.material=m;this.rotation={y:0};}function Clock(){this.time=performance.now();}Clock.prototype={getElapsedTime:function(){return (performance.now()-this.time)/1000;}};exports.Scene=Scene;exports.PerspectiveCamera=PerspectiveCamera;exports.WebGLRenderer=WebGLRenderer;exports.BufferGeometry=BufferGeometry;exports.Float32BufferAttribute=Float32BufferAttribute;exports.PointsMaterial=PointsMaterial;exports.Points=Points;exports.Clock=Clock;});`;
 
     const blob = new Blob([threeCode], { type: 'application/javascript' });
@@ -32,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const canvas = document.querySelector('canvas.webgl');
         const scene = new THREE.Scene();
 
-        // 1 группа (слева): первые 10 полных ссылок
+        // 1 группа (левая): первые 10 полных прямых ссылок
         const groupLeft = [
             'https://moy.su',
             'https://moy.su',
@@ -46,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'https://moy.su'
         ];
 
-        // 2 группа (справа): вторые 10 полных ссылок
+        // 2 группа (правая): вторые 10 полных прямых ссылок
         const groupRight = [
             'https://moy.su',
             'https://moy.su',
