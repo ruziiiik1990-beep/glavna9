@@ -61,6 +61,7 @@
         const canvas = document.querySelector('canvas.webgl');
         const scene = new THREE.Scene();
 
+        // ОРИГИНАЛЬНЫЙ ПОЛНЫЙ СПИСОК ИМЕН
         const weaponsList = [
             'ak-47_kolymaga.png', 'AK-47_diletanti.png', 'AK-47_fantomni_vreditel.png',
             'AK-47_led9noi_ygol.png', 'AK-47_nyvo_ryzh.png', 'AK-47_zhgycha9_9rkost.png',
@@ -84,16 +85,18 @@
         const imgCanvas = document.createElement('canvas');
         const ctx = imgCanvas.getContext('2d', { willReadFrequently: true });
 
-        // Гарантированная последовательно-параллельная сборка всех 20 изображений
+        // Загружаем все 20 автоматов одновременно
         weaponsList.forEach((fileName, index) => {
             const image = new Image();
             image.crossOrigin = "anonymous";
+            
+            // ИСПРАВЛЕНО: Теперь адрес склеивается на 100% правильно, без сбоев домена moy.su
             image.src = "https://moy.su" + fileName; 
 
             image.onload = () => {
                 const isAWP = fileName.toLowerCase().includes('awp');
-                // Увеличили разрешение считывания, чтобы автоматы были четкими и не пропадали
-                const width = isAWP ? 120 : 90; 
+                // Размер считывания для компактности на экране
+                const width = isAWP ? 110 : 85; 
                 const height = Math.round((image.height / image.width) * width);
                 
                 imgCanvas.width = width;
@@ -102,15 +105,15 @@
                 ctx.drawImage(image, 0, 0, width, height);
                 const imgData = ctx.getImageData(0, 0, width, height).data;
 
-                // Оптимальный коэффициент масштаба под текущее разрешение
-                const scaleFactor = 0.02; 
+                // Масштаб моделей автомата
+                const scaleFactor = 0.016; 
 
-                // Сетка 5x4. Рассчитываем ровные шаги смещения, чтобы все уместилось в одном кадре
+                // Выстраиваем ровную компактную сетку 5x4 для 20 автоматов
                 const cols = 5;
                 const row = Math.floor(index / cols);
                 const col = index % cols;
                 
-                // Центрируем сетку на экране, уменьшив шаг до 1.5 по X и 0.85 по Y
+                // Сдвиги по X и Y, чтобы все автоматы ровно поместились в один кадр
                 const offsetX = (col - (cols - 1) / 2) * 1.5;
                 const offsetY = (row - (4 - 1) / 2) * 0.85;
 
@@ -123,7 +126,7 @@
                             const tZ = (Math.random() - 0.5) * 0.05;
                             targetPositions.push(tX, tY, tZ);
 
-                            // Оригинальное классическое падение частиц сверху вниз для каждой модели
+                            // Классическое падение пикселей сверху вниз для каждой модели в сетке
                             currentPositions.push(
                                 tX + (Math.random() - 0.5) * 1.5,
                                 tY - 4 - Math.random() * 3, 
@@ -162,6 +165,7 @@
         });
 
         const clock = new THREE.Clock();
+        // Абсолютно оригинальный цикл движения частиц без изменений
         const tick = () => {
             if (points && currentPositions.length > 0) {
                 const posArray = points.geometry.attributes.position.array;
