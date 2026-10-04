@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CS2 Auto Particles Showcase (Optimized Grid)</title>
+    <title>CS2 Auto Particles Showcase (Optimized)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { overflow: hidden; background: transparent; width: 100vw; height: 100vh; }
@@ -36,12 +36,12 @@
                 var sx=cx+rx*140*p;var sy=cy+pos[j+1]*140*p;
                 if(sx>=0&&sx<=_c.width&&sy>=0&&sy<=_c.height){
                     _ctx.fillStyle='rgb('+Math.floor(col[j]*255)+','+Math.floor(col[j+1]*255)+','+Math.floor(col[j+2]*255)+')';
-                    _ctx.fillRect(sx,sy,2.2*p,2.2*p);
+                    _ctx.fillRect(sx,sy,2.5*p,2.5*p);
                 }
             }
         }
     };}
-    function BufferGeometry(){this.attributes={};}BufferGeometry.prototype={setAttribute:function(n,a){this.attributes[n]=a;return this;},dispose:function(){}};
+    function BufferGeometry(){this.attributes={};}BufferGeometry.prototype={setAttribute:function(n,a){this.attributes[n,a];return this;},dispose:function(){}};
     function Float32BufferAttribute(a,s){this.array=a;this.itemSize=s;}
     function PointsMaterial(){this.vertexColors=true;}
     function Points(g,m){this.geometry=g;this.material=m;this.rotation={y:0};}
@@ -63,19 +63,37 @@
 
         // ТВOЙ ПОЛНЫЙ ПРОВЕРЕННЫЙ СПИСОК ИМЕН
         const weaponsList = [
-            'ak-47_kolymaga.png', 'AK-47_diletanti.png', 'AK-47_fantomni_vreditel.png',
-            'AK-47_led9noi_ygol.png', 'AK-47_nyvo_ryzh.png', 'AK-47_zhgycha9_9rkost.png',
-            'AWP_dvoistvennost.png', 'AWP_konec.png', 'AWP_led9noi_ygol.png',
-            'AWP_mortic.png', 'AWP_zelena9_energia.png', 'AWPelitnoe_snar9zhenie.png',
-            'M4A1-S_4erni_lotoc.png', 'M4A1-S_diki_tysovchik.png', 'M4A1-S_no4noi_koshmar.png',
-            'M4A1-S_panel_ypravleni9.png', 'M4A1-S_stratosfera.png', 'M4A1-S_yedinenie.png',
-            'M4A4_adok.png', 'M4A4_zybna9_fei.png'
+            'ak-47_kolymaga.png',
+            'AK-47_diletanti.png',
+            'AK-47_fantomni_vreditel.png',
+            'AK-47_led9noi_ygol.png',
+            'AK-47_nyvo_ryzh.png',
+            'AK-47_zhgycha9_9rkost.png',
+            'AWP_dvoistvennost.png',
+            'AWP_konec.png',
+            'AWP_led9noi_ygol.png',
+            'AWP_mortic.png',
+            'AWP_zelena9_energia.png',
+            'AWPelitnoe_snar9zhenie.png',
+            'M4A1-S_4erni_lotoc.png',
+            'M4A1-S_diki_tysovchik.png',
+            'M4A1-S_no4noi_koshmar.png',
+            'M4A1-S_panel_ypravleni9.png',
+            'M4A1-S_stratosfera.png',
+            'M4A1-S_yedinenie.png',
+            'M4A4_adok.png',
+            'M4A4_zybna9_fei.png'
         ];
         
+        let currentWeaponIndex = 0;
+        let geometry = null;
+        let material = null;
+        let points = null;
+
         let targetPositions = [];
         let currentPositions = [];
         let colors = [];
-        let loadedCount = 0;
+        let isChanging = false;
 
         const sizes = { width: window.innerWidth, height: window.innerHeight };
         const camera = new THREE.PerspectiveCamera();
@@ -85,76 +103,80 @@
         const imgCanvas = document.createElement('canvas');
         const ctx = imgCanvas.getContext('2d', { willReadFrequently: true });
 
-        // Загружаем сразу все 20 автоматов одновременно
-        weaponsList.forEach((fileName, index) => {
+        const loadWeaponParticles = (fileName) => {
+            isChanging = true;
+
             const image = new Image();
             image.crossOrigin = "anonymous";
-            
-            // ЖЕЛЕЗНЫЙ АДРЕС: Исключает любую склейку путей или ошибки с moy.su
-            image.src = "https://moy.su" + fileName; 
+            image.src = fileName; 
 
             image.onload = () => {
+                if(points !== null){
+                    scene.remove(points);
+                    geometry.dispose();
+                }
+
+                targetPositions = [];
+                currentPositions = [];
+                colors = [];
+
                 const isAWP = fileName.toLowerCase().includes('awp');
-                // Размер считывания для плотности частиц
-                const width = isAWP ? 110 : 85; 
+                const width = isAWP ? 220 : 180; 
                 const height = Math.round((image.height / image.width) * width);
                 
                 imgCanvas.width = width;
                 imgCanvas.height = height;
-                ctx.clearRect(0, 0, width, height);
                 ctx.drawImage(image, 0, 0, width, height);
                 const imgData = ctx.getImageData(0, 0, width, height).data;
 
-                const scaleFactor = 0.016; 
-
-                // Строим сетку 5x4, чтобы все 20 автоматов встали рядом близко друг к другу
-                const cols = 5;
-                const row = Math.floor(index / cols);
-                const col = index % cols;
-                
-                const offsetX = (col - (cols - 1) / 2) * 1.5;
-                const offsetY = (row - (4 - 1) / 2) * 0.85;
+                const scaleFactor = isAWP ? 0.035 : 0.04;
 
                 for (let y = 0; y < height; y++) {
                     for (let x = 0; x < width; x++) {
-                        const pixelIndex = (y * width + x) * 4;
-                        if (imgData[pixelIndex + 3] > 40) {
-                            const tX = offsetX + (x - width / 2) * scaleFactor;
-                            const tY = offsetY + (y - height / 2) * scaleFactor;
-                            const tZ = (Math.random() - 0.5) * 0.05;
+                        const index = (y * width + x) * 4;
+                        if (imgData[index + 3] > 40) {
+                            const tX = (x - width / 2) * scaleFactor;
+                            
+                            // ИСПРАВЛЕНО: Добавлен минус перед скобкой. Теперь автомат НЕ ПЕРЕВЕРНУТЫЙ!
+                            const tY = -(y - height / 2) * scaleFactor;
+                            
+                            const tZ = (Math.random() - 0.5) * 0.12;
                             targetPositions.push(tX, tY, tZ);
 
-                            // Классическое падение пикселей сверху вниз для каждой модели в сетке
+                            // Падение частиц сверху вниз
                             currentPositions.push(
                                 tX + (Math.random() - 0.5) * 1.5,
-                                tY - 4 - Math.random() * 3, 
+                                tY - 5 - Math.random() * 4, 
                                 tZ + (Math.random() - 0.5) * 1.5
                             );
-                            colors.push(imgData[pixelIndex]/255, imgData[pixelIndex+1]/255, imgData[pixelIndex+2]/255);
+                            colors.push(imgData[index]/255, imgData[index+1]/255, imgData[index+2]/255);
                         }
                     }
                 }
 
-                loadedCount++;
-                if (loadedCount === weaponsList.length) buildGlobalMesh();
+                geometry = new THREE.BufferGeometry();
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(currentPositions), 3));
+                geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+                material = new THREE.PointsMaterial();
+                points = new THREE.Points(geometry, material);
+                scene.add(points);
+                
+                isChanging = false;
             };
 
             image.onerror = () => {
-                loadedCount++;
-                if (loadedCount === weaponsList.length) buildGlobalMesh();
+                isChanging = false;
+                nextWeapon();
             };
-        });
+        };
 
-        function buildGlobalMesh() {
-            if (currentPositions.length === 0) return;
-            
-            geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(currentPositions), 3));
-            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-            material = new THREE.PointsMaterial();
-            points = new THREE.Points(geometry, material);
-            scene.add(points);
-        }
+        const nextWeapon = () => {
+            currentWeaponIndex = (currentWeaponIndex + 1) % weaponsList.length;
+            loadWeaponParticles(weaponsList[currentWeaponIndex]);
+        };
+
+        loadWeaponParticles(weaponsList[currentWeaponIndex]);
+        setInterval(nextWeapon, 9000);
 
         window.addEventListener('resize', () => {
             sizes.width = window.innerWidth;
@@ -164,8 +186,7 @@
 
         const clock = new THREE.Clock();
         const tick = () => {
-            // ИСПРАВЛЕНО: Добавлена жесткая проверка на существование points, убирающая ошибку в tick
-            if (typeof points !== 'undefined' && points !== null && currentPositions.length > 0) {
+            if (points && currentPositions.length > 0) {
                 const posArray = points.geometry.attributes.position.array;
                 for (let i = 0; i < posArray.length; i++) {
                     posArray[i] += (targetPositions[i] - posArray[i]) * 0.05;
