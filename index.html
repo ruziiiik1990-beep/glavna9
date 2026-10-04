@@ -14,53 +14,15 @@
 
 <canvas class="webgl"></canvas>
 
+<!-- Подключаем официальную стабильную сборку Three.js из CDN, чтобы не раздувать код -->
+<script src="https://cloudflare.com"></script>
+
 <script>
-    // НАДЁЖНОЕ ВСТРОЕННОЕ ЯДРО THREE.JS ДЛЯ СТАБИЛЬНОЙ РАБОТЫ ЧАСТИЦ
-    const threeCode = `
-    (function(g,f){typeof exports==='object'&&typeof module!=='undefined'?f(exports):typeof define==='function'&&define.amd?define(['exports'],f):(g=typeof globalThis!=='undefined'?globalThis:g||self,f(g.THREE={}));})(this,function(exports){'use strict';
-    function Scene(){this.type="Scene";this.children=[];}
-    Scene.prototype={
-        add:function(o){this.children.push(o);},
-        remove:function(o){var idx=this.children.indexOf(o);if(idx!==-1)this.children.splice(idx,1);}
-    };
-    function PerspectiveCamera(){this.type="PerspectiveCamera";this.position={z:5};}
-    function WebGLRenderer(p){var _c=p.canvas;var _ctx=_c.getContext('2d');this.setSize=function(w,h){_c.width=w;_c.height=h;};
-    this.render=function(s,cam){
-        _ctx.clearRect(0,0,_c.width,_c.height);var cx=_c.width/2,cy=_c.height/2;
-        for(var i=0;i<s.children.length;i++){
-            var obj=s.children[i];if(!obj||!obj.geometry)continue;
-            var pos=obj.geometry.attributes.position.array;var col=obj.geometry.attributes.color.array;
-            var rotY=obj.rotation.y;var cos=Math.cos(rotY),sin=Math.sin(rotY);
-            for(var j=0;j<pos.length;j+=3){
-                var rx=pos[j]*cos-pos[j+2]*sin;var rz=pos[j+2]*cos+pos[j]*sin;var p=400/(400+rz*20);
-                var sx=cx+rx*140*p;var sy=cy+pos[j+1]*140*p;
-                if(sx>=0&&sx<=_c.width&&sy>=0&&sy<=_c.height){
-                    _ctx.fillStyle='rgb('+Math.floor(col[j]*255)+','+Math.floor(col[j+1]*255)+','+Math.floor(col[j+2]*255)+')';
-                    _ctx.fillRect(sx,sy,2.5*p,2.5*p);
-                }
-            }
-        }
-    };}
-    function BufferGeometry(){this.attributes={};}BufferGeometry.prototype={setAttribute:function(n,a){this.attributes[n]=a;return this;},dispose:function(){}};
-    function Float32BufferAttribute(a,s){this.array=a;this.itemSize=s;}
-    function PointsMaterial(){this.vertexColors=true;}
-    function Points(g,m){this.geometry=g;this.material=m;this.rotation={y:0};}
-    function Clock(){this.time=performance.now();}Clock.prototype={getElapsedTime:function(){return (performance.now()-this.time)/1000;}};
-    exports.Scene=Scene;exports.PerspectiveCamera=PerspectiveCamera;exports.WebGLRenderer=WebGLRenderer;
-    exports.BufferGeometry=BufferGeometry;exports.Float32BufferAttribute=Float32BufferAttribute;
-    exports.PointsMaterial=PointsMaterial;exports.Points=Points;exports.Clock=Clock;
-    });`;
-
-    const blob = new Blob([threeCode], { type: 'application/javascript' });
-    const script = document.createElement('script');
-    script.src = URL.createObjectURL(blob);
-    script.onload = () => { initParticlesApp(); };
-    document.head.appendChild(script);
-
-    function initParticlesApp() {
+    document.addEventListener('DOMContentLoaded', () => {
         const canvas = document.querySelector('canvas.webgl');
         const scene = new THREE.Scene();
 
+        // Полный список имен твоих скинов
         const weaponsList = [
             'ak-47_kolymaga.png',
             'AK-47_diletanti.png',
@@ -91,19 +53,23 @@
 
         let targetPositions = [];
         let colors = [];
-        let intentChanging = false;
+        let isChanging = false;
         let weaponStartTime = performance.now(); 
 
         const sizes = { width: window.innerWidth, height: window.innerHeight };
-        const camera = new THREE.PerspectiveCamera();
-        const renderer = new THREE.WebGLRenderer({ canvas: canvas });
+        
+        // Создаем стандартную перспективную камеру Three.js
+        const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100);
+        camera.position.z = 5;
+
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
         renderer.setSize(sizes.width, sizes.height);
 
         const imgCanvas = document.createElement('canvas');
         const ctx = imgCanvas.getContext('2d', { willReadFrequently: true });
 
         const loadWeaponParticles = (fileName) => {
-            intentChanging = true;
+            isChanging = true;
 
             const image = new Image();
             image.crossOrigin = "anonymous";
@@ -134,8 +100,8 @@
                         const index = (y * width + x) * 4;
                         if (imgData[index + 3] > 40) {
                             const tX = (x - width / 2) * scaleFactor;
-                            const tY = (y - height / 2) * scaleFactor;
-                            const tZ = (Math.random() - 0.5) * 0.05; // Ограничили разброс по Z, чтобы пушка не рассыпалась издалека
+                            const tY = -(y - height / 2) * scaleFactor; // Инвертируем Y, чтобы пушка не была перевернутой
+                            const tZ = (Math.random() - 0.5) * 0.05;
                             
                             targetPositions.push(tX, tY, tZ);
                             colors.push(imgData[index]/255, imgData[index+1]/255, imgData[index+2]/255);
@@ -145,18 +111,24 @@
 
                 geometry = new THREE.BufferGeometry();
                 const initPositions = new Float32Array(targetPositions.length);
-                geometry.setAttribute('position', new THREE.Float32BufferAttribute(initPositions, 3));
-                geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-                material = new THREE.PointsMaterial();
+                geometry.setAttribute('position', new THREE.BufferAttribute(initPositions, 3));
+                geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
+                
+                material = new THREE.PointsMaterial({
+                    size: 0.04,
+                    vertexColors: true,
+                    transparent: true
+                });
+
                 points = new THREE.Points(geometry, material);
                 scene.add(points);
                 
                 weaponStartTime = performance.now();
-                intentChanging = false;
+                isChanging = false;
             };
 
             image.onerror = () => {
-                intentChanging = false;
+                isChanging = false;
                 nextWeapon();
             };
         };
@@ -168,19 +140,21 @@
 
         loadWeaponParticles(weaponsList[currentWeaponIndex]);
 
-        // Интервал смены оружия строго равен 6 секундам (6000ms)
+        // Интервал смены строго равен 6 секундам
         setInterval(nextWeapon, 6000);
 
         window.addEventListener('resize', () => {
             sizes.width = window.innerWidth;
             sizes.height = window.innerHeight;
+            camera.aspect = sizes.width / sizes.height;
+            camera.updateProjectionMatrix();
             renderer.setSize(sizes.width, sizes.height);
         });
 
         const clock = new THREE.Clock();
         
         const tick = () => {
-            if (points && targetPositions.length > 0 && !intentChanging) {
+            if (points && targetPositions.length > 0 && !isChanging) {
                 const posArray = points.geometry.attributes.position.array;
                 const elapsed = (performance.now() - weaponStartTime) / 1000; 
                 
@@ -189,28 +163,28 @@
                 let currentScale = 1;
 
                 if (elapsed <= 2.5) {
-                    // Фаза 1 (Сверху-издалека к центру): масштаб растет от 0.3 до 1.0, Y смещается от -5 к 0
+                    // Фаза 1 (До 2.5 сек): Все частицы ОДНОВРЕМЕННО летят сверху (от +5) к центру (0) и увеличиваются (от 0.2 до 1.0)
                     progress = elapsed / 2.5;
-                    currentYOffset = -5 * (1 - progress); 
-                    currentScale = 0.3 + 0.7 * progress;
+                    currentYOffset = 5 * (1 - progress); 
+                    currentScale = 0.2 + 0.8 * progress;
                     
                 } else if (elapsed > 2.5 && elapsed <= 4.0) {
-                    // Фаза 2 (Замирание): Исходные размеры пушки на месте
+                    // Фаза 2 (С 2.5 до 4.0 сек): Замирание по центру в 100% масштабе
                     currentYOffset = 0;
                     currentScale = 1;
                     
                 } else if (elapsed > 4.0 && elapsed <= 6.0) {
-                    // Фаза 3 (Уход вниз): Y падает от 0 до +6, масштаб слегка уменьшается
+                    // Фаза 3 (С 4.0 до 6.0 сек): Все частицы ОДНОВРЕМЕННО улетают вниз (до -6)
                     progress = (elapsed - 4.0) / 2.0;
-                    currentYOffset = 6 * progress; 
-                    currentScale = 1.0 - 0.2 * progress;
+                    currentYOffset = -6 * progress; 
+                    currentScale = 1.0 - 0.3 * progress;
                 }
 
-                // Перезапись координат вершин с безопасными коэффициентами
+                // Обновляем координаты вершин с учетом масштабирования и движения по Y
                 for (let i = 0; i < posArray.length; i += 3) {
                     posArray[i] = targetPositions[i] * currentScale; 
                     posArray[i+1] = (targetPositions[i+1] * currentScale) + currentYOffset; 
-                    posArray[i+2] = targetPositions[i+2]; // Оставили Z стабильной
+                    posArray[i+2] = targetPositions[i+2] * currentScale; 
                 }
 
                 points.geometry.attributes.position.needsUpdate = true;
@@ -221,7 +195,7 @@
             window.requestAnimationFrame(tick);
         };
         tick();
-    }
+    });
 </script>
 
 </body>
