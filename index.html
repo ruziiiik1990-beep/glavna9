@@ -1,693 +1,287 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>Playoff Tournament — Anime.js</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
-    body {
-      margin: 0;
-      padding: 0;
-      background: #000;
-      color: #fff;
-      font-family: 'Press Start 2P', monospace;
-      overflow: hidden;
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-    }
-
-    .crt-overlay {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      pointer-events: none;
-      z-index: 100;
-      background: linear-gradient(rgba(16,16,16,0) 50%, rgba(0,0,0,0.25) 50%);
-      background-size: 100% 4px;
-      opacity: 0.5;
-    }
-    .vignette {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: radial-gradient(circle, rgba(0,0,0,0) 30%, rgba(0,0,0,0.9) 90%);
-      pointer-events: none;
-      z-index: 99;
-    }
-
-    #stage {
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-      z-index: 5;
-    }
-
-    .title {
-      text-align: center;
-      font-size: 20px;
-      line-height: 1.4;
-      margin-bottom: 10px;
-      text-shadow: 0 0 4px #fff, 0 0 12px #0ff;
-      opacity: 0;
-      will-change: opacity, transform;
-    }
-
-    .bracket-container {
-      position: relative;
-      width: 900px;
-      max-width: 95%;
-      height: 460px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .side-label {
-      position: absolute;
-      top: 0;
-      font-size: 14px;
-      opacity: 0;
-      will-change: opacity;
-    }
-    .side-west { left: 10px; color: #0ff; text-shadow: 0 0 8px #0ff; }
-    .side-east { right: 10px; color: #f0a; text-shadow: 0 0 8px #f0a; }
-
-    .match-card {
-      position: absolute;
-      border: 2px solid #444;
-      background: #0c0c0c;
-      padding: 5px 7px;
-      font-size: 10px;
-      box-shadow: 0 0 6px rgba(0,0,0,0.5);
-      opacity: 0;
-      transform: scale(0.8);
-      will-change: transform, opacity;
-      text-align: left;
-      min-width: 130px;
-      z-index: 2;
-    }
-
-    .match-winner {
-      border-color: #0f0;
-      background: #001200;
-      color: #0f0;
-      box-shadow: 0 0 12px rgba(0,255,0,0.5);
-    }
-
-    .match-loser {
-      opacity: 0.25 !important;
-      filter: grayscale(1);
-    }
-
-    .match-final {
-      border-color: #ff0;
-      background: #221800;
-      color: #ff0;
-      box-shadow: 0 0 18px rgba(255,255,0,0.6);
-      font-size: 11px;
-      min-width: 150px;
-    }
-
-    .player-expand {
-      position: absolute;
-      background: #0a0a0a;
-      border: 1px solid #555;
-      padding: 4px;
-      font-size: 7px;
-      line-height: 1.6;
-      opacity: 0;
-      z-index: 20;
-      will-change: opacity, transform;
-      white-space: nowrap;
-    }
-
-    .vs-flash {
-      position: absolute;
-      font-size: 16px;
-      color: #fff;
-      text-shadow: 0 0 10px #f00;
-      opacity: 0;
-      z-index: 15;
-      will-change: opacity, scale;
-    }
-
-    .prize-card {
-      position: absolute;
-      width: 100px;
-      height: 100px;
-      border: 3px solid #444;
-      background: #0a0a0a;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 7px;
-      opacity: 0;
-      transform: scale(0.5) translateY(50px);
-      will-change: transform, opacity;
-      box-shadow: 0 0 6px rgba(0,0,0,0.3);
-      z-index: 10;
-      text-align: center;
-    }
-    .prize-gold {
-      border-color: #fc0;
-      box-shadow: 0 0 14px rgba(252,200,0,0.7);
-    }
-    .prize-silver {
-      border-color: #aaa;
-      box-shadow: 0 0 10px rgba(170,170,170,0.5);
-    }
-
-    .progress-bar-bg {
-      position: absolute;
-      bottom: 15px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 50%;
-      height: 6px;
-      background: #222;
-      border: 1px solid #000;
-      z-index: 50;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #0ff, #0f0);
-    }
-
-    .champion-banner {
-      position: absolute;
-      top: 35%;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 18px;
-      color: #ff0;
-      text-shadow: 0 0 12px #ff0;
-      opacity: 0;
-      z-index: 30;
-      will-change: opacity, transform;
-      text-align: center;
-    }
-
-    .prize-row {
-      position: absolute;
-      bottom: 60px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 14px;
-      z-index: 10;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Playoff Tournament — Anime.js</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#374151;color:#fff;font-family:'Press Start 2P',monospace;overflow:hidden;display:flex;justify-content:center;align-items:center;min-height:100vh}
+.scanlines{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:50;background:linear-gradient(rgba(0,0,0,0) 50%,rgba(0,0,0,0.15) 50%);background-size:100% 3px}
+.vignette{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:49;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 40%,rgba(0,0,0,0.6) 100%)}
+#stage{position:relative;width:1000px;height:620px}
+.title{text-align:center;font-size:18px;line-height:1.4;margin-top:10px;text-shadow:0 0 6px #fff,0 0 12px #0ff;opacity:0;position:relative;z-index:5}
+.label{position:absolute;font-size:14px;opacity:0;z-index:5;text-shadow:0 0 8px currentColor}
+.label-west{top:52px;left:65px;color:#0ff}
+.label-east{top:52px;left:865px;color:#f0a}
+.bracket{position:absolute;top:85px;left:0;width:1000px;height:500px}
+.bracket svg{position:absolute;top:0;left:0;pointer-events:none;z-index:1}
+.match-card{position:absolute;width:140px;background:#1e293b;border:2px solid #475569;padding:6px 8px;opacity:0;z-index:2;will-change:transform,opacity;overflow:hidden}
+.match-card.winner{border-color:#0f0;box-shadow:0 0 10px rgba(0,255,0,0.3)}
+.match-card.final{border-color:#fc0;box-shadow:0 0 14px rgba(252,204,0,0.5)}
+.team-row{font-size:9px;padding:2px 0;color:#ccc}
+.team-row.win{color:#0f0;text-shadow:0 0 4px #0f0}
+.team-row.lose{color:#444;text-decoration:line-through}
+.vs-text{text-align:center;font-size:9px;color:#666;padding:3px 0}
+.player-list{overflow:hidden;height:0}
+.player-row{font-size:7px;color:#777;padding:1px 0 1px 10px;opacity:0}
+.player-row.win{color:#0c0}
+.player-row.lose{color:#333}
+.ghost-badge{position:absolute;background:#021108;border:2px solid #0f0;color:#0f0;padding:5px 10px;font-size:9px;z-index:20;box-shadow:0 0 10px rgba(0,255,0,0.6);pointer-events:none;opacity:0;white-space:nowrap;border-radius:2px}
+.champion-banner{position:absolute;top:180px;left:50%;transform:translateX(-50%);font-size:20px;color:#fc0;text-shadow:0 0 12px #fc0,0 0 24px #f80;opacity:0;z-index:10;text-align:center;white-space:nowrap}
+.prize-container{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);display:flex;flex-wrap:wrap;justify-content:center;gap:8px;z-index:5;width:700px}
+.prize-card{width:80px;height:80px;border:3px solid #444;background:#2d3a4e;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:6px;opacity:0;transform:scale(0.5) translateY(50px);text-align:center;padding:4px;line-height:1.3}
+.prize-winner{border-color:#ff6b9d;box-shadow:0 0 12px rgba(255,107,157,0.6);color:#ff6b9d}
+.prize-finalist{border-color:#a855f7;box-shadow:0 0 12px rgba(168,85,247,0.6);color:#a855f7}
+.progress-bg{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:60%;height:6px;background:#222;border:1px solid #333;z-index:5}
+.progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#0f0,#0ff)}
+</style>
 </head>
 <body>
-  <div class="vignette"></div>
-  <div class="crt-overlay"></div>
-
-  <div id="stage">
-    <div class="title">PLAYOFF<br>ПУТЬ К ПРИЗАМ</div>
-
-    <div class="bracket-container" id="bracket">
-      <div class="side-label side-west" id="labelWest">◀ ЗАПАД</div>
-      <div class="side-label side-east" id="labelEast">ВОСТОК ▶</div>
-    </div>
-
-    <div class="champion-banner" id="championBanner">👑 ЧЕМПИОН<br><span id="champName"></span></div>
-
-    <div class="prize-row" id="prizeRow"></div>
-
-    <div class="progress-bar-bg">
-      <div class="progress-bar-fill" id="progress"></div>
-    </div>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+<div id="stage">
+  <div class="title">PLAYOFF<br>ПУТЬ К ПОБЕДЕ</div>
+  <div class="label label-west">ЗАПАД</div>
+  <div class="label label-east">ВОСТОК</div>
+  <div class="bracket" id="bracket">
+    <svg width="1000" height="500" id="lines"></svg>
   </div>
+  <div class="champion-banner" id="champion"></div>
+  <div class="prize-container" id="prizes"></div>
+  <div class="progress-bg"><div class="progress-fill" id="progress"></div></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<script>
+const bracket = document.getElementById('bracket');
+const linesSvg = document.getElementById('lines');
+const progress = document.getElementById('progress');
+const championEl = document.getElementById('champion');
+const prizesEl = document.getElementById('prizes');
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-  <script>
-    const bracket = document.getElementById('bracket');
-    const progress = document.getElementById('progress');
-    const title = document.querySelector('.title');
-    const labelWest = document.getElementById('labelWest');
-    const labelEast = document.getElementById('labelEast');
-    const champBanner = document.getElementById('championBanner');
-    const champName = document.getElementById('champName');
-    const prizeRow = document.getElementById('prizeRow');
+// ── Data ──
+const westTeams = ['ALPHA','BRAVO','CHARLIE','DELTA'];
+const eastTeams = ['ECHO','FOXTROT','GOLF','HOTEL'];
+const namePool = ['neo','viper','frost','reaper','blaze','shade','echo','nova','onyx','raven','jolt','kira','zeno','nyx','axis','flux','surge','volt','hex','rune','kage','wisp','dusk','jade','pyre','glyph','rift','void','haze','bolt'];
+const prizeNames = ['AK-47 Жгучая ярость','AWP Зелёная энергия','AK-47 Дилетанты','M4A1-S Уединение','AK-47 Фантом'];
 
-    // --- Данные ---
-    const teamNames = [
-      'NINJAS', 'DRAGONS', 'WOLVES', 'FALCONS',
-      'TITANS', 'SHARKS', 'VIPERS', 'KINGS'
-    ];
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function rnd(a){return a[Math.floor(Math.random()*a.length)]}
+function genPlayers(){return Array.from({length:5},()=>rnd(namePool))}
+function pickWinner(a,b){return Math.random()>0.5?a:b}
 
-    const playerNames = [
-      'Alex', 'Bond', 'Crux', 'Dart', 'Echo',
-      'Fury', 'Ghost', 'Hex', 'Iron', 'Jinx',
-      'Kael', 'Lynx', 'Maze', 'Nova', 'Onyx',
-      'Pray', 'Quin', 'Rush', 'Sage', 'Toxic',
-      'Umbra', 'Volt', 'Watt', 'Zero', 'Ash',
-      'Blaze', 'Cole', 'Dusk', 'Frost', 'Gale',
-      'Hawk', 'Ice', 'Jet', 'Kira', 'Lux',
-      'Max', 'Nyx', 'Orin', 'Pax', 'Rex'
-    ];
+// ── Positions (even spacing, centers at 100, 300, 500, 700, 900) ──
+const POS = {
+  qf1:{x:30,y:30},   qf2:{x:30,y:230},
+  qf3:{x:830,y:30},  qf4:{x:830,y:230},
+  sf1:{x:230,y:130},sf2:{x:630,y:130},
+  final:{x:430,y:130}
+};
 
-    const prizes = [
-      { name: 'AK-47 Жгучая ярость', type: 'gold' },
-      { name: 'AWP Зелёная энергия', type: 'gold' },
-      { name: 'AK-47 Дилетанты', type: 'silver' },
-      { name: 'M4A1-S Уединение', type: 'silver' },
-      { name: 'AK-47 Фантомный вредитель', type: 'normal' }
-    ];
+// ── Lines (center-to-center, clean L-shaped) ──
+const linePaths = [
+  'M 100 55 H 200 V 155 H 300',
+  'M 100 255 H 200 V 155 H 300',
+  'M 900 55 H 800 V 155 H 700',
+  'M 900 255 H 800 V 155 H 700',
+  'M 300 155 H 500',
+  'M 700 155 H 500'
+];
+linePaths.forEach((d,i)=>{
+  const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+  p.setAttribute('d',d);
+  p.setAttribute('stroke','#6b7280');
+  p.setAttribute('stroke-width','2');
+  p.setAttribute('fill','none');
+  p.setAttribute('opacity','0');
+  p.id='line-'+i;
+  linesSvg.appendChild(p);
+});
 
-    function shuffle(arr) {
-      const a = [...arr];
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-      }
-      return a;
-    }
+// ── Create card ──
+function createCard(id, tA, tB, pA, pB, x, y, isFinal){
+  const c=document.createElement('div');
+  c.className='match-card'+(isFinal?' final':'');
+  c.id=id;
+  c.style.left=x+'px';
+  c.style.top=y+'px';
+  c.innerHTML = `
+    <div class="team-row" data-t="A">${tA}</div>
+    <div class="player-list" data-pl="A">${pA.map(p=>`<div class="player-row">${p}</div>`).join('')}</div>
+    <div class="vs-text">VS</div>
+    <div class="team-row" data-t="B">${tB}</div>
+    <div class="player-list" data-pl="B">${pB.map(p=>`<div class="player-row">${p}</div>`).join('')}</div>
+  `;
+  return c;
+}
 
-    function randomWinner(a, b) {
-      return Math.random() > 0.5 ? a : b;
-    }
+// ── Setup tournament ──
+const wShuf = shuffle(westTeams);
+const eShuf = shuffle(eastTeams);
+const qf = [
+  [wShuf[0],wShuf[1]], [wShuf[2],wShuf[3]],
+  [eShuf[0],eShuf[1]], [eShuf[2],eShuf[3]]
+];
+const teamPlayers = {};
+[...westTeams,...eastTeams].forEach(t=>{teamPlayers[t]=genPlayers()});
 
-    // Генерация состава команды (5 игроков)
-    function genPlayers(teamName) {
-      const pool = shuffle(playerNames);
-      return pool.slice(0, 5).map(p => p + ' [' + teamName + ']');
-    }
+const qfCards = [];
+const qfWinners = [];
+for(let i=0;i<4;i++){
+  const pos = POS['qf'+(i+1)];
+  const card = createCard('qf'+(i+1), qf[i][0], qf[i][1], teamPlayers[qf[i][0]], teamPlayers[qf[i][1]], pos.x, pos.y, false);
+  bracket.appendChild(card);
+  qfCards.push(card);
+  qfWinners.push(pickWinner(qf[i][0], qf[i][1]));
+}
 
-    // --- Создание команд с игроками ---
-    const shuffledTeams = shuffle(teamNames);
-    const westTeams = shuffledTeams.slice(0, 4);
-    const eastTeams = shuffledTeams.slice(4, 8);
+// Shuffle QF winners randomly into SF
+const sfShuffle = shuffle(qfWinners);
+const sfTeams = [[sfShuffle[0],sfShuffle[1]], [sfShuffle[2],sfShuffle[3]]];
+const sfCards = [];
+const sfWinners = [];
+for(let i=0;i<2;i++){
+  const pos = POS['sf'+(i+1)];
+  const card = createCard('sf'+(i+1), sfTeams[i][0], sfTeams[i][1], teamPlayers[sfTeams[i][0]], teamPlayers[sfTeams[i][1]], pos.x, pos.y, false);
+  bracket.appendChild(card);
+  sfCards.push(card);
+  sfWinners.push(pickWinner(sfTeams[i][0], sfTeams[i][1]));
+}
 
-    // Каждой команде даём 5 игроков
-    const teams = {};
-    [...westTeams, ...eastTeams].forEach(t => {
-      teams[t] = { name: t, players: genPlayers(t) };
-    });
+// Final
+const finalCard = createCard('final', sfWinners[0], sfWinners[1], teamPlayers[sfWinners[0]], teamPlayers[sfWinners[1]], POS.final.x, POS.final.y, true);
+bracket.appendChild(finalCard);
+const champion = pickWinner(sfWinners[0], sfWinners[1]);
+const finalist = champion === sfWinners[0] ? sfWinners[1] : sfWinners[0];
 
-    // --- Позиции в сетке ---
-    // Запад — слева, Восток — справа, идут навстречу друг другу
-    const W = 900, H = 460;
-    const cardW = 140;
+// ── Helper: highlight winner in a card ──
+function highlightWinner(cardId, winner, teamA, teamB){
+  const card = document.getElementById(cardId);
+  const rows = card.querySelectorAll('.team-row');
+  const lists = card.querySelectorAll('.player-list');
+  if(teamA === winner){
+    rows[0].classList.add('win'); rows[1].classList.add('lose');
+    lists[0].querySelectorAll('.player-row').forEach(r=>r.classList.add('win'));
+    lists[1].querySelectorAll('.player-row').forEach(r=>r.classList.add('lose'));
+  } else {
+    rows[1].classList.add('win'); rows[0].classList.add('lose');
+    lists[1].querySelectorAll('.player-row').forEach(r=>r.classList.add('win'));
+    lists[0].querySelectorAll('.player-row').forEach(r=>r.classList.add('lose'));
+  }
+}
 
-    const pos = {
-      // Запад: QF слева, SF ближе к центру, Final — в центре
-      wqf1: { top: 10,  left: 20 },
-      wqf2: { top: 110, left: 20 },
-      wqf3: { top: 220, left: 20 },
-      wqf4: { top: 330, left: 20 },
-      wsf1: { top: 60,  left: 180 },
-      wsf2: { top: 280, left: 180 },
-      // Восток: QF справа, SF ближе к центру
-      eqf1: { top: 10,  left: W - cardW - 20 },
-      eqf2: { top: 110, left: W - cardW - 20 },
-      eqf3: { top: 220, left: W - cardW - 20 },
-      eqf4: { top: 330, left: W - cardW - 20 },
-      esf1: { top: 60,  left: W - cardW - 180 },
-      esf2: { top: 280, left: W - cardW - 180 },
-      // Финал — по центру
-      final: { top: 170, left: (W - cardW) / 2 - 5 }
-    };
+// ── Ghost badge creation ──
+function makeGhost(teamName, fromX, fromY){
+  const g = document.createElement('div');
+  g.className = 'ghost-badge';
+  g.textContent = teamName;
+  g.style.left = fromX+'px';
+  g.style.top = fromY+'px';
+  bracket.appendChild(g);
+  return g;
+}
 
-    // --- SVG линии ---
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', '100%');
-    svg.setAttribute('height', '100%');
-    svg.style.position = 'absolute';
-    svg.style.top = 0;
-    svg.style.left = 0;
-    svg.style.pointerEvents = 'none';
-    svg.style.zIndex = 1;
-    bracket.appendChild(svg);
+// ── Animation timeline (15 seconds) ──
+const tl = anime.timeline({easing:'easeOutQuad',duration:500});
 
-    const svgLines = [];
+// 0.0–0.5s: Title + labels
+tl.add({targets:'.title',opacity:[0,1],scale:[0.85,1],duration:400})
+  .add({targets:['.label-west','.label-east'],opacity:[0,1],translateY:[-8,0],duration:300},'-=200');
 
-    function drawLine(x1, y1, x2, y2) {
-      const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      l.setAttribute('x1', x1); l.setAttribute('y1', y1);
-      l.setAttribute('x2', x2); l.setAttribute('y2', y2);
-      l.setAttribute('stroke', '#333');
-      l.setAttribute('stroke-width', 2);
-      l.setAttribute('opacity', 0);
-      svg.appendChild(l);
-      svgLines.push(l);
-      return l;
-    }
+// 0.5–1.2s: QF cards appear
+tl.add({targets:[qfCards[0],qfCards[1],qfCards[2],qfCards[3]],opacity:[0,1],translateY:[18,0],delay:anime.stagger(120),duration:350});
 
-    // Линии: Запад QF → SF
-    drawLine(160, 35,  180, 80);
-    drawLine(160, 135, 180, 80);
-    drawLine(160, 245, 180, 300);
-    drawLine(160, 355, 180, 300);
-    // Запад SF → Final
-    drawLine(320, 80,  430, 200);
-    drawLine(320, 300, 430, 200);
-    // Линии: Восток QF → SF (зеркально)
-    drawLine(W - 160, 35,  W - 180, 80);
-    drawLine(W - 160, 135, W - 180, 80);
-    drawLine(W - 160, 245, W - 180, 300);
-    drawLine(W - 160, 355, W - 180, 300);
-    // Восток SF → Final
-    drawLine(W - 320, 80,  W - 430, 200);
-    drawLine(W - 320, 300, W - 430, 200);
+// 1.2–2.0s: Expand QF to show 5v5
+tl.add({targets:[qfCards[0],qfCards[1],qfCards[2],qfCards[3]].flatMap(c=>[...c.querySelectorAll('.player-list')]),height:['0px','58px'],duration:300,easing:'easeOutCubic'},'-=200')
+  .add({targets:[qfCards[0],qfCards[1],qfCards[2],qfCards[3]].flatMap(c=>[...c.querySelectorAll('.player-row')]),opacity:[0,1],delay:anime.stagger(30),duration:250},'-=200');
 
-    // --- Создание карточек матчей ---
-    let matchId = 0;
+// 2.0–2.5s: VS flash + determine QF winners
+tl.add({targets:[qfCards[0],qfCards[1],qfCards[2],qfCards[3]].map(c=>c.querySelector('.vs-text')),scale:[1,1.6,1],color:['#666','#ff0','#666'],duration:350,delay:anime.stagger(80)},'-=100');
+tl.add({begin:()=>{for(let i=0;i<4;i++)highlightWinner('qf'+(i+1),qfWinners[i],qf[i][0],qf[i][1])},duration:200});
 
-    function createMatch(teamA, teamB, posKey, isFinal) {
-      const p = pos[posKey];
-      const card = document.createElement('div');
-      card.className = 'match-card' + (isFinal ? ' match-final' : '');
-      card.id = 'match-' + matchId++;
-      card.style.top = p.top + 'px';
-      card.style.left = p.left + 'px';
-      card.innerHTML = `
-        <div class="team-a">${teamA}</div>
-        <div style="color:#666;text-align:center">VS</div>
-        <div class="team-b">${teamB}</div>
-      `;
-      bracket.appendChild(card);
-      return card;
-    }
+// 2.6–4.5s: All QF winners fly to SF simultaneously
+const sfAssignment = [];
+sfShuffle.forEach((w,i)=>{
+  const sfIdx = i<2?0:1;
+  const slot = i%2;
+  sfAssignment.push({team:w, sf:sfIdx, slot:slot});
+});
 
-    // --- Четвертьфиналы ---
-    const wqf1 = createMatch(westTeams[0], westTeams[1], 'wqf1', false);
-    const wqf2 = createMatch(westTeams[2], westTeams[3], 'wqf2', false);
-    const wqf3 = createMatch(westTeams[0], westTeams[1], 'wqf3', false);  // temp
-    const wqf4 = createMatch(westTeams[2], westTeams[3], 'wqf4', false);  // temp
+const ghosts = [];
+qfWinners.forEach((w,qi)=>{
+  const qfPos = POS['qf'+(qi+1)];
+  const ghost = makeGhost(w, qfPos.x+20, qfPos.y+8);
+  ghosts.push({el:ghost, team:w, qfIdx:qi});
+});
 
-    // Перетасовка: западные QF перемешиваем
-    const westQFpairs = [
-      [westTeams[0], westTeams[1]],
-      [westTeams[2], westTeams[3]]
-    ];
-    // Перетасуем пары и команды внутри пар
-    const westShuffled = shuffle(westQFpairs.map(pair => shuffle(pair)));
+ghosts.forEach(g=>{
+  let target = null;
+  for(const a of sfAssignment){
+    if(a.team===g.team){target=a;break}
+  }
+  g.target = target;
+});
 
-    // Перепишем карточки QF
-    wqf1.querySelector('.team-a').textContent = westShuffled[0][0];
-    wqf1.querySelector('.team-b').textContent = westShuffled[0][1];
-    wqf2.querySelector('.team-a').textContent = westShuffled[1][0];
-    wqf2.querySelector('.team-b').textContent = westShuffled[1][1];
+tl.add({targets:ghosts.map(g=>g.el),opacity:[0,1,1,0],translateX:ghosts.map(g=>POS['sf'+(g.target.sf+1)].x+20-(POS['qf'+(g.qfIdx+1)].x+20)),translateY:ghosts.map(g=>POS['sf'+(g.target.sf+1)].y+(g.target.slot===0?8:95)-(POS['qf'+(g.qfIdx+1)].y+8)),scale:[{value:0.5,duration:0},{value:1.2,duration:200},{value:1,duration:300},{value:0,duration:300}],delay:anime.stagger(150,{from:'center'}),duration:1200,easing:'easeInOutCubic'});
 
-    // Аналогично восток
-    const eastQFpairs = [
-      [eastTeams[0], eastTeams[1]],
-      [eastTeams[2], eastTeams[3]]
-    ];
-    const eastShuffled = shuffle(eastQFpairs.map(pair => shuffle(pair)));
+// 4.5–4.8s: SF cards appear
+tl.add({targets:[sfCards[0],sfCards[1]],opacity:[0,1],translateY:[18,0],delay:anime.stagger(120),duration:300});
 
-    const eqf1 = createMatch(eastShuffled[0][0], eastShuffled[0][1], 'eqf1', false);
-    const eqf2 = createMatch(eastShuffled[1][0], eastShuffled[1][1], 'eqf2', false);
-    const eqf3 = createMatch(eastShuffled[0][0], eastShuffled[0][1], 'eqf3', false); // temp
-    const eqf4 = createMatch(eastShuffled[1][0], eastShuffled[1][1], 'eqf4', false); // temp
+// 4.8–5.5s: Expand SF to 5v5
+tl.add({targets:[sfCards[0],sfCards[1]].flatMap(c=>[...c.querySelectorAll('.player-list')]),height:['0px','58px'],duration:250,easing:'easeOutCubic'},'-=100')
+  .add({targets:[sfCards[0],sfCards[1]].flatMap(c=>[...c.querySelectorAll('.player-row')]),opacity:[0,1],delay:anime.stagger(30),duration:200},'-=150');
 
-    // Удаляем лишние temp-карточки (wqf3, wqf4, eqf3, eqf4)
-    wqf3.remove();
-    wqf4.remove();
-    eqf3.remove();
-    eqf4.remove();
+// 5.5–6.0s: VS flash + determine SF winners
+tl.add({targets:[sfCards[0],sfCards[1]].map(c=>c.querySelector('.vs-text')),scale:[1,1.6,1],color:['#666','#ff0','#666'],duration:300,delay:80},'-=50');
+tl.add({begin:()=>{for(let i=0;i<2;i++)highlightWinner('sf'+(i+1),sfWinners[i],sfTeams[i][0],sfTeams[i][1])},duration:150});
 
-    // --- Определение победителей QF ---
-    const wqf1Winner = randomWinner(westShuffled[0][0], westShuffled[0][1]);
-    const wqf2Winner = randomWinner(westShuffled[1][0], westShuffled[1][1]);
-    const eqf1Winner = randomWinner(eastShuffled[0][0], eastShuffled[0][1]);
-    const eqf2Winner = randomWinner(eastShuffled[1][0], eastShuffled[1][1]);
+// 6.2–7.5s: SF winners fly to Final
+const sfGhosts = [];
+sfWinners.forEach((w,si)=>{
+  const sfPos = POS['sf'+(si+1)];
+  const g = makeGhost(w, sfPos.x+20, sfPos.y+8);
+  sfGhosts.push({el:g, team:w, sfIdx:si});
+});
 
-    // --- Полуфиналы: перетасовка победителей QF ---
-    const westSFpool = shuffle([wqf1Winner, wqf2Winner]);
-    const eastSFpool = shuffle([eqf1Winner, eqf2Winner]);
+tl.add({targets:sfGhosts.map(g=>g.el),opacity:[0,1,1,0],translateX:sfGhosts.map(g=>POS.final.x+20-(POS['sf'+(g.sfIdx+1)].x+20)),translateY:sfGhosts.map(g=>POS.final.y+(g.sfIdx===0?8:95)-(POS['sf'+(g.sfIdx+1)].y+8)),scale:[{value:0.5,duration:0},{value:1.2,duration:150},{value:1,duration:200},{value:0,duration:250}],delay:anime.stagger(150),duration:1000,easing:'easeInOutCubic'});
 
-    const wsf1 = createMatch(westSFpool[0], westSFpool[1], 'wsf1', false);
-    const wsf2 = createMatch(westSFpool[0], westSFpool[1], 'wsf2', false);
-    wsf2.remove(); // заглушка, убираем
-    // У запада 2 SF матча, но т.к. 4 команды → 2 QF → 2 победителя → 1 SF
-    // На самом деле: 4 команды → 2 QF → 2 победителя → 1 SF (2 победителя встречаются)
-    // Но по структуре "навстречу" — на каждой стороне 2 QF → 1 SF
-    // Уберём wsf2, оставим один SF на сторону
-    wsf1.querySelector('.team-a').textContent = westSFpool[0];
-    wsf1.querySelector('.team-b').textContent = westSFpool[1];
+// 7.5–8.0s: Final card appears + expand
+tl.add({targets:finalCard,opacity:[0,1],translateY:[18,0],duration:300});
+tl.add({targets:[...finalCard.querySelectorAll('.player-list')],height:['0px','58px'],duration:250,easing:'easeOutCubic'},'-=100')
+  .add({targets:[...finalCard.querySelectorAll('.player-row')],opacity:[0,1],delay:anime.stagger(30),duration:200},'-=150');
 
-    const esf1 = createMatch(eastSFpool[0], eastSFpool[1], 'esf1', false);
+// 8.0–8.4s: VS flash + champion
+tl.add({targets:finalCard.querySelector('.vs-text'),scale:[1,1.8,1],color:['#666','#fc0','#666'],duration:350},'-=50');
+tl.add({begin:()=>highlightWinner('final',champion,sfWinners[0],sfWinners[1]),duration:150});
 
-    // --- Финал ---
-    const westChamp = randomWinner(westSFpool[0], westSFpool[1]);
-    const eastChamp = randomWinner(eastSFpool[0], eastSFpool[1]);
+// 8.5–9.5s: Champion banner
+tl.add({targets:championEl,opacity:[0,1],scale:[0.5,1.1,1],duration:500,easing:'easeOutBack'});
+championEl.innerHTML = '&#x1F451; ' + champion + ' &#x1F451;<br><span style="font-size:12px;color:#f80">ЧЕМПИОН</span>';
 
-    const finalCard = createMatch(westChamp, eastChamp, 'final', true);
+// 9.5–15s: 10 prizes (5 winner pink + 5 finalist purple)
+const champPlayers = teamPlayers[champion];
+const finalPlayers = teamPlayers[finalist];
 
-    // --- Чемпион ---
-    const champion = randomWinner(westChamp, eastChamp);
-    champName.textContent = champion + '!';
+for(let i=0;i<5;i++){
+  const pc=document.createElement('div');
+  pc.className='prize-card prize-winner';
+  pc.innerHTML=`<div>${champPlayers[i]}</div><div style="margin-top:4px;font-size:5px;opacity:0.7">${rnd(shuffle(prizeNames))}</div>`;
+  prizesEl.appendChild(pc);
+}
+for(let i=0;i<5;i++){
+  const pc=document.createElement('div');
+  pc.className='prize-card prize-finalist';
+  pc.innerHTML=`<div>${finalPlayers[i]}</div><div style="margin-top:4px;font-size:5px;opacity:0.7">${rnd(shuffle(prizeNames))}</div>`;
+  prizesEl.appendChild(pc);
+}
 
-    // --- Функция "раскрытия" команды (5 на 5) ---
-    function showPlayerExpand(card, teamAName, teamBName) {
-      const rect = card.getBoundingClientRect();
-      const bracketRect = bracket.getBoundingClientRect();
+tl.add({targets:[...prizesEl.children],opacity:[0,1],scale:[0.5,1],translateY:[50,0],delay:anime.stagger(100),duration:400,easing:'easeOutBack'},'-=300');
 
-      const expand = document.createElement('div');
-      expand.className = 'player-expand';
-      expand.style.left = (parseInt(card.style.left) + cardW + 8) + 'px';
-      expand.style.top = (parseInt(card.style.top) - 10) + 'px';
+// Progress bar (continuous over 15s)
+anime({targets:progress,width:['0%','100%'],duration:15000,easing:'linear'});
 
-      const playersA = teams[teamAName].players;
-      const playersB = teams[teamBName].players;
-
-      let html = '<div style="color:#0ff;font-size:8px;margin-bottom:3px">' + teamAName + ' (5)</div>';
-      playersA.forEach(p => { html += '<div style="color:#0af">' + p + '</div>'; });
-      html += '<div style="color:#666;margin:3px 0">--- VS ---</div>';
-      html += '<div style="color:#f0a;font-size:8px;margin-bottom:3px">' + teamBName + ' (5)</div>';
-      playersB.forEach(p => { html += '<div style="color:#f55">' + p + '</div>'; });
-
-      expand.innerHTML = html;
-      bracket.appendChild(expand);
-
-      anime({
-        targets: expand,
-        opacity: [0, 1],
-        scale: [0.8, 1],
-        duration: 300,
-        easing: 'easeOutQuad'
-      });
-
-      return expand;
-    }
-
-    function hidePlayerExpand(expand) {
-      anime({
-        targets: expand,
-        opacity: 0,
-        scale: 0.8,
-        duration: 200,
-        easing: 'easeInQuad',
-        complete: () => expand.remove()
-      });
-    }
-
-    // --- Подсветка победителя/проигравшего ---
-    function markWinner(card, winnerName) {
-      const teamA = card.querySelector('.team-a');
-      const teamB = card.querySelector('.team-b');
-      if (teamA.textContent === winnerName) {
-        teamA.style.color = '#0f0';
-        teamA.style.textShadow = '0 0 6px #0f0';
-        teamB.style.opacity = '0.3';
-      } else {
-        teamB.style.color = '#0f0';
-        teamB.style.textShadow = '0 0 6px #0f0';
-        teamA.style.opacity = '0.3';
-      }
-      card.classList.add('match-winner');
-    }
-
-    // --- VS Flash ---
-    function createVSFlash(card) {
-      const vs = document.createElement('div');
-      vs.className = 'vs-flash';
-      vs.textContent = 'VS!';
-      vs.style.left = (parseInt(card.style.left) + 40) + 'px';
-      vs.style.top = (parseInt(card.style.top) + 30) + 'px';
-      bracket.appendChild(vs);
-      anime({
-        targets: vs,
-        opacity: [0, 1, 0],
-        scale: [0.5, 1.5, 1],
-        duration: 400,
-        easing: 'easeOutQuad',
-        complete: () => vs.remove()
-      });
-    }
-
-    // --- Анимация ---
-    const allCards = document.querySelectorAll('.match-card');
-    const allLines = svgLines;
-
-    // === TIMELINE ===
-    const tl = anime.timeline({
-      easing: 'easeOutQuad',
-      duration: 500
-    });
-
-    // 0:00–0:01 — Заголовок + метки сторон
-    tl.add({
-      targets: [title, labelWest, labelEast],
-      opacity: [0, 1],
-      scale: [0.8, 1],
-      duration: 500,
-      delay: anime.stagger(80)
-    });
-
-    // 0:01–0:02 — Четвертьфиналы появляются
-    tl.add({
-      targets: [wqf1, wqf2, eqf1, eqf2],
-      opacity: [0, 1],
-      scale: [0.8, 1],
-      duration: 300,
-      delay: anime.stagger(100),
-      complete: function() {
-        // Раскрытие 5 на 5 для каждого QF
-        const e1 = showPlayerExpand(wqf1, wqf1.querySelector('.team-a').textContent, wqf1.querySelector('.team-b').textContent);
-        setTimeout(() => hidePlayerExpand(e1), 400);
-
-        const e2 = showPlayerExpand(eqf1, eqf1.querySelector('.team-a').textContent, eqf1.querySelector('.team-b').textContent);
-        setTimeout(() => hidePlayerExpand(e2), 400);
-      }
-    });
-
-    // VS Flash + определение победителей QF
-    tl.add({
-      targets: [],
-      duration: 300,
-      begin: function() {
-        createVSFlash(wqf1);
-        createVSFlash(eqf1);
-      }
-    });
-
-    // Линии QF→SF
-    tl.add({
-      targets: allLines,
-      opacity: [0, 1],
-      duration: 300,
-      easing: 'linear'
-    });
-
-    // Подсветка победителей QF
-    tl.add({
-      targets: [],
-      duration: 200,
-      begin: function() {
-        markWinner(wqf1, wqf1Winner);
-        markWinner(wqf2, wqf2Winner);
-        markWinner(eqf1, eqf1Winner);
-        markWinner(eqf2, eqf2Winner);
-      }
-    });
-
-    // 0:02–0:03 — Полуфиналы (перетасованные команды)
-    tl.add({
-      targets: [wsf1, esf1],
-      opacity: [0, 1],
-      scale: [0.8, 1],
-      duration: 300,
-      delay: anime.stagger(80),
-      complete: function() {
-        // Раскрытие 5 на 5 для SF
-        const e = showPlayerExpand(wsf1, wsf1.querySelector('.team-a').textContent, wsf1.querySelector('.team-b').textContent);
-        setTimeout(() => hidePlayerExpand(e), 300);
-      }
-    });
-
-    // VS Flash SF + определение победителей
-    tl.add({
-      targets: [],
-      duration: 200,
-      begin: function() {
-        createVSFlash(wsf1);
-        createVSFlash(esf1);
-      }
-    });
-
-    tl.add({
-      targets: [],
-      duration: 200,
-      begin: function() {
-        markWinner(wsf1, westChamp);
-        markWinner(esf1, eastChamp);
-      }
-    });
-
-    // 0:03–0:04 — Финал
-    tl.add({
-      targets: finalCard,
-      opacity: [0, 1],
-      scale: [0.5, 1],
-      duration: 300,
-      easing: 'easeOutBack'
-    });
-
-    tl.add({
-      targets: [],
-      duration: 200,
-      begin: function() {
-        createVSFlash(finalCard);
-        const e = showPlayerExpand(finalCard, westChamp, eastChamp);
-        setTimeout(() => hidePlayerExpand(e), 300);
-      }
-    });
-
-    // Подсветка победителя финала
-    tl.add({
-      targets: [],
-      duration: 200,
-      begin: function() {
-        markWinner(finalCard, champion);
-      }
-    });
-
-    // 0:04–0:05 — Чемпион + призы
-    tl.add({
-      targets: champBanner,
-      opacity: [0, 1],
-      scale: [0.5, 1],
-      duration: 300,
-      easing: 'easeOutBack'
-    });
-
-    // Призы
-    const shuffledPrizes = shuffle(prizes);
-    shuffledPrizes.forEach((p, i) => {
-      const pc = document.createElement('div');
-      pc.className = 'prize-card prize-' + p.type;
-      const parts = p.name.split(' ');
-      pc.innerHTML = parts[0] + '<br>' + (parts.slice(1).join(' '));
-      prizeRow.appendChild(pc);
-
-      tl.add({
-        targets: pc,
-        opacity: [0, 1],
-        scale: [0.5, 1],
-        translateY: [50, 0],
-        duration: 200,
-        easing: 'easeOutBack'
-      }, '-=100');
-    });
-
-    // Прогресс-бар
-    tl.add({
-      targets: progress,
-      width: ['0%', '100%'],
-      duration: 5000,
-      easing: 'linear'
-    }, 0);
-
-    tl.play();
-  </script>
+// Lines fade in at 0.6s
+setTimeout(()=>{linePaths.forEach((_,i)=>{anime({targets:'#line-'+i,opacity:[0,1],duration:400,delay:i*80})})},600);
+</script>
 </body>
 </html>
