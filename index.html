@@ -61,7 +61,6 @@
         const canvas = document.querySelector('canvas.webgl');
         const scene = new THREE.Scene();
 
-        // ТВOЙ ПОЛНЫЙ ПРОВЕРЕННЫЙ СПИСОК ИМЕН
         const weaponsList = [
             'ak-47_kolymaga.png',
             'AK-47_diletanti.png',
@@ -137,17 +136,17 @@
                         if (imgData[index + 3] > 40) {
                             const tX = (x - width / 2) * scaleFactor;
                             
-                            // ЗДЕСЬ ИЗМЕНЕНО: Добавлен минус перед скобкой, чтобы перевернуть модель правильной стороной вверх
-                            const tY = -(y - height / 2) * scaleFactor;
+                            // ВОЗВРАЩЕНО В ИСХОДНОЕ СОСТОЯНИЕ (Без минуса, как ты и просил)
+                            const tY = (y - height / 2) * scaleFactor;
                             
                             const tZ = (Math.random() - 0.5) * 0.12;
                             targetPositions.push(tX, tY, tZ);
 
-                            // Падение частиц сверху вниз
+                            // Начальная позиция частиц (Разбросаны космическим облаком вокруг)
                             currentPositions.push(
-                                tX + (Math.random() - 0.5) * 1.5,
-                                tY - 5 - Math.random() * 4, 
-                                tZ + (Math.random() - 0.5) * 1.5
+                                tX + (Math.random() - 0.5) * 3.0,
+                                tY + (Math.random() - 0.5) * 3.0, 
+                                tZ + (Math.random() - 0.5) * 3.0
                             );
                             colors.push(imgData[index]/255, imgData[index+1]/255, imgData[index+2]/255);
                         }
@@ -175,10 +174,7 @@
             loadWeaponParticles(weaponsList[currentWeaponIndex]);
         };
 
-        // Старт цикла
         loadWeaponParticles(weaponsList[currentWeaponIndex]);
-
-        // Интервал смены скинов (9 секунд)
         setInterval(nextWeapon, 9000);
 
         window.addEventListener('resize', () => {
@@ -191,10 +187,30 @@
         const tick = () => {
             if (points && currentPositions.length > 0) {
                 const posArray = points.geometry.attributes.position.array;
-                for (let i = 0; i < posArray.length; i++) {
-                    posArray[i] += (targetPositions[i] - posArray[i]) * 0.05;
+                const time = clock.getElapsedTime();
+
+                for (let i = 0; i < posArray.length; i += 3) {
+                    // Координаты идеальной сборки
+                    const tx = targetPositions[i];
+                    const ty = targetPositions[i+1];
+                    const tz = targetPositions[i+2];
+
+                    // ГАЛАКТИЧЕСКИЙ ЭФФЕКТ: Спиральное закручивание по орбите вокруг центра
+                    const distance = Math.sqrt(tx*tx + ty*ty);
+                    const angle = time * 1.8 + distance * 0.7; // Вращение зависит от времени и расстояния до центра
+                    
+                    const spiralX = tx * Math.cos(angle) - ty * Math.sin(angle);
+                    const spiralY = tx * Math.sin(angle) + ty * Math.cos(angle);
+
+                    // Плавная сборка частиц к их финальной траектории
+                    posArray[i] += (spiralX - posArray[i]) * 0.04;
+                    posArray[i+1] += (spiralY - posArray[i+1]) * 0.04;
+                    posArray[i+2] += (tz - posArray[i+2]) * 0.04;
                 }
-                points.rotation.y = clock.getElapsedTime() * 0.45; 
+                points.geometry.attributes.position.needsUpdate = true;
+                
+                // Легкое покачивание всей 3D-сцены для объемного космического эффекта
+                points.rotation.y = Math.sin(time * 0.5) * 0.2; 
             }
             renderer.render(scene, camera);
             window.requestAnimationFrame(tick);
