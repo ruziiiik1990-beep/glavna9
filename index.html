@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
@@ -12,6 +11,8 @@
   --glitch-c1:#00fff9;
   --glitch-c2:#ff004c;
   --glitch-c3:#ffb000;
+  --prize-winner:#ff6b9d;
+  --prize-finalist:#a855f7;
 }
 
 body{
@@ -25,7 +26,6 @@ body{
   min-height:100vh;
 }
 
-/* ─── GLITCH OVERLAYS ─── */
 .scanlines{
   position:fixed;top:0;left:0;right:0;bottom:0;
   pointer-events:none;z-index:100;
@@ -53,7 +53,6 @@ body{
   100%{transform:translate(0,0)}
 }
 
-/* RGB slice bars */
 .glitch-bar{
   position:fixed;left:0;right:0;height:0;
   pointer-events:none;z-index:97;
@@ -64,7 +63,6 @@ body{
 
 #stage{position:relative;width:1000px;height:620px}
 
-/* ─── GLITCH TEXT ─── */
 .title{
   text-align:center;font-size:32px;line-height:1.1;
   margin-top:10px;position:relative;z-index:5;
@@ -92,7 +90,6 @@ body{
 .bracket{position:absolute;top:85px;left:0;width:1000px;height:500px}
 .bracket svg{position:absolute;top:0;left:0;pointer-events:none;z-index:1}
 
-/* ─── GLITCH CARD ─── */
 .match-card{
   position:absolute;width:140px;
   background:#111118;
@@ -130,7 +127,7 @@ body{
 .team-row.win{color:var(--glitch-c1);text-shadow:0 0 4px var(--glitch-c1)}
 .team-row.win::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--glitch-c1);animation:scanLine .5s linear}
 @keyframes scanLine{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-.team-row.lose{color:#333;text-decoration:line-through;color:#444}
+.team-row.lose{color:#444;text-decoration:line-through}
 
 .vs-text{text-align:center;font-size:12px;color:#555;padding:3px 0;letter-spacing:2px}
 .vs-text.flash{
@@ -195,12 +192,16 @@ body{
   background:currentColor;opacity:0.5;
 }
 .prize-winner{
-  border-color:var(--glitch-c1);color:var(--glitch-c1);
-  box-shadow:0 0 8px rgba(0,255,249,0.4);
+  border-color:var(--prize-winner);
+  color:var(--prize-winner);
+  box-shadow:0 0 15px rgba(255,107,157,0.7);
+  text-shadow:0 0 8px rgba(255,107,157,0.8);
 }
 .prize-finalist{
-  border-color:var(--glitch-c2);color:var(--glitch-c2);
-  box-shadow:0 0 8px rgba(255,0,76,0.4);
+  border-color:var(--prize-finalist);
+  color:var(--prize-finalist);
+  box-shadow:0 0 15px rgba(168,85,247,0.7);
+  text-shadow:0 0 8px rgba(168,85,247,0.8);
 }
 
 .progress-bg{
@@ -213,7 +214,6 @@ body{
   box-shadow:0 0 6px var(--glitch-c1);
 }
 
-/* ─── GLITCH SLICE EFFECT ON STAGE ─── */
 .glitch-slice{
   position:absolute;left:0;right:0;
   pointer-events:none;z-index:80;
@@ -229,7 +229,7 @@ body{
 <div class="scanlines"></div>
 <div class="noise"></div>
 <div id="stage">
-  <div class="title" data-glitch>PLAYOFF // GLITCH<br>ПУТЬ К ПОБЕДЕ</div>
+  <div class="title" data-glitch>ПЛЕЙ-ОФФ РАНДОМ ТУРНИР</div>
   <div class="label label-west">ЗАПАД</div>
   <div class="label label-east">ВОСТОК</div>
   <div class="bracket" id="bracket">
@@ -251,7 +251,6 @@ const stage = document.getElementById('stage');
 
 // ── GLITCH UTILITIES ──
 function triggerGlitchSlice(){
-  // Random horizontal slice bars
   for(let i=0;i<3;i++){
     const bar=document.createElement('div');
     bar.className='glitch-bar';
@@ -270,7 +269,6 @@ function triggerGlitchSlice(){
       complete:()=>bar.remove()
     });
   }
-  // Stage shake
   anime({
     targets:stage,
     translateX:[{value:anime.random(-4,4),duration:30},{value:anime.random(-2,2),duration:30},{value:0,duration:40}],
@@ -284,7 +282,6 @@ function glitchElement(el){
   setTimeout(()=>el.classList.remove('glitching'),600);
 }
 
-// Continuous random glitches
 setInterval(()=>{ if(Math.random()>0.6) triggerGlitchSlice(); }, 800);
 
 // ── Data ──
