@@ -27,12 +27,16 @@
     function WebGLRenderer(p){var _c=p.canvas;var _ctx=_c.getContext('2d');this.setSize=function(w,h){_c.width=w;_c.height=h;};
     this.render=function(s,cam){
         _ctx.clearRect(0,0,_c.width,_c.height);var cx=_c.width/2,cy=_c.height/2;
+        // Получаем Z камеры для расчета масштаба проекции (эффект зума)
+        var camZ = cam.position.z;
         for(var i=0;i<s.children.length;i++){
             var obj=s.children[i];if(!obj||!obj.geometry)continue;
             var pos=obj.geometry.attributes.position.array;var col=obj.geometry.attributes.color.array;
             var rotY=obj.rotation.y;var cos=Math.cos(rotY),sin=Math.sin(rotY);
             for(var j=0;j<pos.length;j+=3){
-                var rx=pos[j]*cos-pos[j+2]*sin;var rz=pos[j+2]*cos+pos[j]*sin;var p=400/(400+rz*20);
+                var rx=pos[j]*cos-pos[j+2]*sin;var rz=pos[j+2]*cos+pos[j]*sin;
+                // Базовый фокус подстраивается под изменяющееся расстояние camZ
+                var p=400/(400+(rz + (5 - camZ)*20)*20);
                 var sx=cx+rx*140*p;var sy=cy+pos[j+1]*140*p;
                 if(sx>=0&&sx<=_c.width&&sy>=0&&sy<=_c.height){
                     _ctx.fillStyle='rgb('+Math.floor(col[j]*255)+','+Math.floor(col[j+1]*255)+','+Math.floor(col[j+2]*255)+')';
@@ -96,6 +100,10 @@
 
         const sizes = { width: window.innerWidth, height: window.innerHeight };
         const camera = new THREE.PerspectiveCamera();
+        
+        // Базовая позиция по Z
+        camera.position.z = 5; 
+        
         const renderer = new THREE.WebGLRenderer({ canvas: canvas });
         renderer.setSize(sizes.width, sizes.height);
 
@@ -135,14 +143,10 @@
                         const index = (y * width + x) * 4;
                         if (imgData[index + 3] > 40) {
                             const tX = (x - width / 2) * scaleFactor;
-                            
-                            // ВОЗВРАЩЕНО В ИСХОДНОЕ СОСТОЯНИЕ (Без минуса, как ты и просил)
                             const tY = (y - height / 2) * scaleFactor;
-                            
                             const tZ = (Math.random() - 0.5) * 0.12;
                             targetPositions.push(tX, tY, tZ);
 
-                            // Начальная позиция частиц (Разбросаны космическим облаком вокруг)
                             currentPositions.push(
                                 tX + (Math.random() - 0.5) * 3.0,
                                 tY + (Math.random() - 0.5) * 3.0, 
@@ -189,28 +193,29 @@
                 const posArray = points.geometry.attributes.position.array;
                 const time = clock.getElapsedTime();
 
+                // ИСПРАВЛЕНО: Добавлен волновой зум камеры вперед-назад по оси Z
+                camera.position.z = 5 + Math.sin(time * 1.5) * 1.8; 
+
                 for (let i = 0; i < posArray.length; i += 3) {
-                    // Координаты идеальной сборки
                     const tx = targetPositions[i];
                     const ty = targetPositions[i+1];
                     const tz = targetPositions[i+2];
 
-                    // ГАЛАКТИЧЕСКИЙ ЭФФЕКТ: Спиральное закручивание по орбите вокруг центра
+                    // Спиральная закрутка частиц
                     const distance = Math.sqrt(tx*tx + ty*ty);
-                    const angle = time * 1.8 + distance * 0.7; // Вращение зависит от времени и расстояния до центра
+                    const angle = time * 1.8 + distance * 0.7; 
                     
                     const spiralX = tx * Math.cos(angle) - ty * Math.sin(angle);
                     const spiralY = tx * Math.sin(angle) + ty * Math.cos(angle);
 
-                    // Плавная сборка частиц к их финальной траектории
                     posArray[i] += (spiralX - posArray[i]) * 0.04;
                     posArray[i+1] += (spiralY - posArray[i+1]) * 0.04;
                     posArray[i+2] += (tz - posArray[i+2]) * 0.04;
                 }
                 points.geometry.attributes.position.needsUpdate = true;
                 
-                // Легкое покачивание всей 3D-сцены для объемного космического эффекта
-                points.rotation.y = Math.sin(time * 0.5) * 0.2; 
+                // Легкий поворот всей галактики
+                points.rotation.y = Math.sin(time * 0.3) * 0.1; 
             }
             renderer.render(scene, camera);
             window.requestAnimationFrame(tick);
