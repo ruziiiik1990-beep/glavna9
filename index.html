@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CS2 Auto Particles Showcase (Optimized)</title>
+    <title>CS2 Auto Particles Showcase (Optimized Pairs)</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { overflow: hidden; background: transparent; width: 100vw; height: 100vh; }
@@ -41,7 +41,7 @@
             }
         }
     };}
-    function BufferGeometry(){this.attributes={};}BufferGeometry.prototype={setAttribute:function(n,a){this.attributes[n,a];return this;},dispose:function(){}};
+    function BufferGeometry(){this.attributes={};}BufferGeometry.prototype={setAttribute:function(n,a){this.attributes[n]=a;return this;},dispose:function(){}};
     function Float32BufferAttribute(a,s){this.array=a;this.itemSize=s;}
     function PointsMaterial(){this.vertexColors=true;}
     function Points(g,m){this.geometry=g;this.material=m;this.rotation={y:0};}
@@ -61,7 +61,6 @@
         const canvas = document.querySelector('canvas.webgl');
         const scene = new THREE.Scene();
 
-        // ТВOЙ ПОЛНЫЙ ПРОВЕРЕННЫЙ СПИСОК ИМЕН
         const weaponsList = [
             'ak-47_kolymaga.png',
             'AK-47_diletanti.png',
@@ -85,7 +84,7 @@
             'M4A4_zybna9_fei.png'
         ];
         
-        let currentWeaponIndex = 0;
+        let currentPairIndex = 0; // Индекс текущей пары
         let geometry = null;
         let material = null;
         let points = null;
@@ -103,80 +102,111 @@
         const imgCanvas = document.createElement('canvas');
         const ctx = imgCanvas.getContext('2d', { willReadFrequently: true });
 
-        const loadWeaponParticles = (fileName) => {
+        // Функция безопасной загрузки сразу двух предметов на экран
+        const loadWeaponPair = (index1, index2) => {
             isChanging = true;
+            
+            targetPositions = [];
+            currentPositions = [];
+            colors = [];
 
-            const image = new Image();
-            image.crossOrigin = "anonymous";
-            image.src = fileName; 
+            let loadedFiles = 0;
+            const processImage = (fileName, isLeftItem) => {
+                const image = new Image();
+                image.crossOrigin = "anonymous";
+                image.src = "https://moy.su" + fileName;
 
-            image.onload = () => {
-                if(points !== null){
-                    scene.remove(points);
-                    geometry.dispose();
-                }
+                image.onload = () => {
+                    const isAWP = fileName.toLowerCase().includes('awp');
+                    // Делаем пушки чуть меньше (150-180px), чтобы обе идеально встали рядом
+                    const width = isAWP ? 180 : 150; 
+                    const height = Math.round((image.height / image.width) * width);
+                    
+                    imgCanvas.width = width;
+                    imgCanvas.height = height;
+                    ctx.clearRect(0, 0, width, height);
+                    ctx.drawImage(image, 0, 0, width, height);
+                    const imgData = ctx.getImageData(0, 0, width, height).data;
 
-                targetPositions = [];
-                currentPositions = [];
-                colors = [];
+                    const scaleFactor = isAWP ? 0.03 : 0.035;
+                    
+                    // Смещение по оси X: левый предмет двигаем влево (-1.2), правый — вправо (+1.2)
+                    const offsetX = isLeftItem ? -1.2 : 1.2;
 
-                const isAWP = fileName.toLowerCase().includes('awp');
-                const width = isAWP ? 220 : 180; 
-                const height = Math.round((image.height / image.width) * width);
-                
-                imgCanvas.width = width;
-                imgCanvas.height = height;
-                ctx.drawImage(image, 0, 0, width, height);
-                const imgData = ctx.getImageData(0, 0, width, height).data;
+                    for (let y = 0; y < height; y++) {
+                        for (let x = 0; x < width; x++) {
+                            const pixelIndex = (y * width + x) * 4;
+                            if (imgData[pixelIndex + 3] > 40) {
+                                const tX = offsetX + (x - width / 2) * scaleFactor;
+                                const tY = (y - height / 2) * scaleFactor;
+                                const tZ = (Math.random() - 0.5) * 0.12;
+                                targetPositions.push(tX, tY, tZ);
 
-                const scaleFactor = isAWP ? 0.035 : 0.04;
-
-                for (let y = 0; y < height; y++) {
-                    for (let x = 0; x < width; x++) {
-                        const index = (y * width + x) * 4;
-                        if (imgData[index + 3] > 40) {
-                            const tX = (x - width / 2) * scaleFactor;
-                            
-                            // ИСПРАВЛЕНО: Добавлен минус перед скобкой. Теперь автомат НЕ ПЕРЕВЕРНУТЫЙ!
-                            const tY = -(y - height / 2) * scaleFactor;
-                            
-                            const tZ = (Math.random() - 0.5) * 0.12;
-                            targetPositions.push(tX, tY, tZ);
-
-                            // Падение частиц сверху вниз
-                            currentPositions.push(
-                                tX + (Math.random() - 0.5) * 1.5,
-                                tY - 5 - Math.random() * 4, 
-                                tZ + (Math.random() - 0.5) * 1.5
-                            );
-                            colors.push(imgData[index]/255, imgData[index+1]/255, imgData[index+2]/255);
+                                // Падение частиц сверху вниз
+                                currentPositions.push(
+                                    tX + (Math.random() - 0.5) * 1.5,
+                                    tY - 5 - Math.random() * 4, 
+                                    tZ + (Math.random() - 0.5) * 1.5
+                                );
+                                colors.push(imgData[pixelIndex]/255, imgData[pixelIndex+1]/255, imgData[pixelIndex+2]/255);
+                            }
                         }
                     }
-                }
 
-                geometry = new THREE.BufferGeometry();
-                geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(currentPositions), 3));
-                geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-                material = new THREE.PointsMaterial();
-                points = new THREE.Points(geometry, material);
-                scene.add(points);
-                
-                isChanging = false;
+                    loadedFiles++;
+                    // Когда обе картинки успешно считались — создаем 3D объект
+                    if (loadedFiles === 2) {
+                        create3DObject();
+                    }
+                };
+
+                image.onerror = () => {
+                    loadedFiles++;
+                    if (loadedFiles === 2) {
+                        create3DObject();
+                    }
+                };
             };
 
-            image.onerror = () => {
+            // Запускаем параллельное скачивание двух картинок
+            processImage(weaponsList[index1], true);
+            processImage(weaponsList[index2], false);
+        };
+
+        function create3DObject() {
+            if(points !== null){
+                scene.remove(points);
+                geometry.dispose();
+            }
+
+            if (currentPositions.length === 0) {
                 isChanging = false;
-                nextWeapon();
-            };
+                return;
+            }
+
+            geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(currentPositions), 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            material = new THREE.PointsMaterial();
+            points = new THREE.Points(geometry, material);
+            scene.add(points);
+            
+            isChanging = false;
+        }
+
+        const nextWeaponPair = () => {
+            // Переключаемся на следующую пару (шаг +2)
+            currentPairIndex = (currentPairIndex + 2) % weaponsList.length;
+            // На всякий случай проверяем, чтобы у последнего элемента была пара
+            const nextIndex2 = (currentPairIndex + 1) % weaponsList.length;
+            loadWeaponPair(currentPairIndex, nextIndex2);
         };
 
-        const nextWeapon = () => {
-            currentWeaponIndex = (currentWeaponIndex + 1) % weaponsList.length;
-            loadWeaponParticles(weaponsList[currentWeaponIndex]);
-        };
+        // Старт показа первой пары
+        loadWeaponPair(0, 1);
 
-        loadWeaponParticles(weaponsList[currentWeaponIndex]);
-        setInterval(nextWeapon, 9000);
+        // Интервал смены пар (9 секунд)
+        setInterval(nextWeaponPair, 9000);
 
         window.addEventListener('resize', () => {
             sizes.width = window.innerWidth;
@@ -186,19 +216,7 @@
 
         const clock = new THREE.Clock();
         const tick = () => {
-            if (points && currentPositions.length > 0) {
+            // Защитная проверка на существование points, убирающая ReferenceError
+            if (typeof points !== 'undefined' && points !== null && currentPositions.length > 0) {
                 const posArray = points.geometry.attributes.position.array;
                 for (let i = 0; i < posArray.length; i++) {
-                    posArray[i] += (targetPositions[i] - posArray[i]) * 0.05;
-                }
-                points.rotation.y = clock.getElapsedTime() * 0.45; 
-            }
-            renderer.render(scene, camera);
-            window.requestAnimationFrame(tick);
-        };
-        tick();
-    }
-</script>
-
-</body>
-</html>
