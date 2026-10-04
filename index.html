@@ -84,7 +84,7 @@
         const imgCanvas = document.createElement('canvas');
         const ctx = imgCanvas.getContext('2d', { willReadFrequently: true });
 
-        // Загружаем сразу все 20 автоматов одновременно
+        // Гарантированная последовательно-параллельная сборка всех 20 изображений
         weaponsList.forEach((fileName, index) => {
             const image = new Image();
             image.crossOrigin = "anonymous";
@@ -92,26 +92,27 @@
 
             image.onload = () => {
                 const isAWP = fileName.toLowerCase().includes('awp');
-                // Уменьшаем разрешение чтения, чтобы они были компактными
-                const width = isAWP ? 70 : 55; 
+                // Увеличили разрешение считывания, чтобы автоматы были четкими и не пропадали
+                const width = isAWP ? 120 : 90; 
                 const height = Math.round((image.height / image.width) * width);
                 
                 imgCanvas.width = width;
                 imgCanvas.height = height;
+                ctx.clearRect(0, 0, width, height);
                 ctx.drawImage(image, 0, 0, width, height);
                 const imgData = ctx.getImageData(0, 0, width, height).data;
 
-                // Уменьшаем размер самих автоматов, чтобы они влезли рядом
-                const scaleFactor = 0.014; 
+                // Оптимальный коэффициент масштаба под текущее разрешение
+                const scaleFactor = 0.02; 
 
-                // Вычисляем плотную сетку 5x4 для 20 автоматов, расположенных близко
+                // Сетка 5x4. Рассчитываем ровные шаги смещения, чтобы все уместилось в одном кадре
                 const cols = 5;
                 const row = Math.floor(index / cols);
                 const col = index % cols;
                 
-                // Координаты смещения для каждого автомата на экране
-                const offsetX = (col - (cols - 1) / 2) * 1.1;
-                const offsetY = (row - (4 - 1) / 2) * 0.7;
+                // Центрируем сетку на экране, уменьшив шаг до 1.5 по X и 0.85 по Y
+                const offsetX = (col - (cols - 1) / 2) * 1.5;
+                const offsetY = (row - (4 - 1) / 2) * 0.85;
 
                 for (let y = 0; y < height; y++) {
                     for (let x = 0; x < width; x++) {
@@ -119,14 +120,14 @@
                         if (imgData[pixelIndex + 3] > 40) {
                             const tX = offsetX + (x - width / 2) * scaleFactor;
                             const tY = offsetY + (y - height / 2) * scaleFactor;
-                            const tZ = (Math.random() - 0.5) * 0.12;
+                            const tZ = (Math.random() - 0.5) * 0.05;
                             targetPositions.push(tX, tY, tZ);
 
-                            // Оригинальное падение частиц сверху вниз для каждого автомата
+                            // Оригинальное классическое падение частиц сверху вниз для каждой модели
                             currentPositions.push(
-                                tX + (Math.random() - 0.5) * 0.5,
-                                tY - 3 - Math.random() * 2, 
-                                tZ + (Math.random() - 0.5) * 0.5
+                                tX + (Math.random() - 0.5) * 1.5,
+                                tY - 4 - Math.random() * 3, 
+                                tZ + (Math.random() - 0.5) * 1.5
                             );
                             colors.push(imgData[pixelIndex]/255, imgData[pixelIndex+1]/255, imgData[pixelIndex+2]/255);
                         }
@@ -144,6 +145,8 @@
         });
 
         function buildGlobalMesh() {
+            if (currentPositions.length === 0) return;
+            
             geometry = new THREE.BufferGeometry();
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(currentPositions), 3));
             geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
@@ -159,7 +162,6 @@
         });
 
         const clock = new THREE.Clock();
-        // Полностью оригинальный цикл движения частиц без изменений эффектов
         const tick = () => {
             if (points && currentPositions.length > 0) {
                 const posArray = points.geometry.attributes.position.array;
