@@ -22,7 +22,6 @@
         const canvas = document.querySelector('canvas.webgl');
         const scene = new THREE.Scene();
 
-        // Полный список имен твоих скинов
         const weaponsList = [
             'ak-47_kolymaga.png', 'AK-47_diletanti.png', 'AK-47_fantomni_vreditel.png',
             'AK-47_led9noi_ygol.png', 'AK-47_nyvo_ryzh.png', 'AK-47_zhgycha9_9rkost.png',
@@ -44,7 +43,6 @@
 
         const sizes = { width: window.innerWidth, height: window.innerHeight };
         
-        // Создаем и настраиваем перспективную камеру
         const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100);
         camera.position.set(0, 0, 6);
         camera.lookAt(scene.position); 
@@ -56,7 +54,6 @@
         const imgCanvas = document.createElement('canvas');
         const ctx = imgCanvas.getContext('2d', { willReadFrequently: true });
 
-        // Одновременная загрузка всех 20 автоматов
         weaponsList.forEach((fileName, index) => {
             const image = new Image();
             image.crossOrigin = "anonymous";
@@ -64,7 +61,8 @@
 
             image.onload = () => {
                 const isAWP = fileName.toLowerCase().includes('awp');
-                const width = isAWP ? 120 : 95; 
+                // Уменьшили разрешение считывания, чтобы сделать частицы плотнее
+                const width = isAWP ? 80 : 65; 
                 const height = Math.round((image.height / image.width) * width);
                 
                 imgCanvas.width = width;
@@ -73,11 +71,13 @@
                 ctx.drawImage(image, 0, 0, width, height);
                 const imgData = ctx.getImageData(0, 0, width, height).data;
 
-                const scaleFactor = 0.022; 
+                // УМЕНЬШИЛИ МАСШТАБ самих моделей, чтобы они стали компактнее
+                const scaleFactor = 0.015; 
 
-                // Выстраиваем центры пушек по круговому вихрю галактики
-                const spiralRadius = 1.2 + (index * 0.09); 
-                const spiralAngle = index * (Math.PI * 2 / weaponsList.length) * 2.2; 
+                // СБЛИЗИЛИ ЦЕНТРЫ: Уменьшили коэффициенты радиуса (с 1.2 до 0.6 и шаг до 0.05)
+                // Теперь они стоят на небольшом расстоянии друг от друга и гарантированно влезают в кадр
+                const spiralRadius = 0.6 + (index * 0.05); 
+                const spiralAngle = index * (Math.PI * 2 / weaponsList.length) * 2.0; 
                 
                 const centerX = Math.cos(spiralAngle) * spiralRadius;
                 const centerY = Math.sin(spiralAngle) * spiralRadius;
@@ -86,22 +86,16 @@
                     for (let x = 0; x < width; x++) {
                         const pixelIndex = (y * width + x) * 4;
                         if (imgData[pixelIndex + 3] > 50) {
-                            // Сохраняем правильный, неискаженный вид автомата
                             const locX = (x - width / 2) * scaleFactor;
-                            
-                            // ВОЗВРАЩЕНО В ИСХОДНОЕ СОСТОЯНИЕ (Без минуса в начале)
                             const locY = (y - height / 2) * scaleFactor; 
-                            
                             const locZ = (Math.random() - 0.5) * 0.05;
 
-                            // Смещаем модель на её координаты в общей спирали
                             const tX = centerX + locX;
                             const tY = centerY + locY;
                             const tZ = locZ;
 
                             globalTargetPositions.push(tX, tY, tZ);
 
-                            // Космический разброс частиц на старте
                             globalCurrentPositions.push(
                                 centerX * 0.2 + (Math.random() - 0.5) * 5.0,
                                 centerY * 0.2 + (Math.random() - 0.5) * 5.0,
@@ -129,7 +123,7 @@
             geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(globalColors), 3));
             
             material = new THREE.PointsMaterial({
-                size: 0.04,
+                size: 0.025, // Немного уменьшили размер точек под новый масштаб
                 vertexColors: true,
                 transparent: true,
                 opacity: 1.0
@@ -151,7 +145,7 @@
         const tick = () => {
             const time = clock.getElapsedTime();
             
-            // Замедленный в 4 раза волновой зум камеры по оси Z
+            // Оставили оригинальные параметры замедленного зума и фокуса камеры
             camera.position.z = 6.2 + Math.sin(time * 0.375) * 1.6; 
             camera.lookAt(scene.position); 
 
@@ -163,12 +157,10 @@
                     const ty = globalTargetPositions[i+1];
                     const tz = globalTargetPositions[i+2];
 
-                    // Вращение всего галактического диска из пушек
                     const angle = time * 0.2; 
                     const rotatedX = tx * Math.cos(angle) - ty * Math.sin(angle);
                     const rotatedY = tx * Math.sin(angle) + ty * Math.cos(angle);
 
-                    // Сборка частиц в ровные очертания пушек
                     posArray[i] += (rotatedX - posArray[i]) * 0.03;
                     posArray[i+1] += (rotatedY - posArray[i+1]) * 0.03;
                     posArray[i+2] += (tz - posArray[i+2]) * 0.03;
