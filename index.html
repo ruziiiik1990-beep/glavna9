@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Pixel Art Tournament — Anime.js</title>
+  <title>Playoff Tournament — Anime.js</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
@@ -14,33 +14,32 @@
       font-family: 'Press Start 2P', monospace;
       overflow: hidden;
       position: relative;
+      width: 100vw;
+      height: 100vh;
     }
 
-    /* CRT эффект */
     .crt-overlay {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
       pointer-events: none;
-      z-index: 10;
-      background: linear-gradient(
-        rgba(16,16,16,0) 50%,
-        rgba(0,0,0,0.25) 50%
-      );
+      z-index: 100;
+      background: linear-gradient(rgba(16,16,16,0) 50%, rgba(0,0,0,0.25) 50%);
       background-size: 100% 4px;
-      opacity: 0.7;
+      opacity: 0.5;
     }
     .vignette {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: radial-gradient(circle, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 70%);
+      background: radial-gradient(circle, rgba(0,0,0,0) 30%, rgba(0,0,0,0.9) 90%);
       pointer-events: none;
-      z-index: 9;
+      z-index: 99;
     }
 
     #stage {
       width: 100vw;
       height: 100vh;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       position: relative;
@@ -49,97 +48,159 @@
 
     .title {
       text-align: center;
-      font-size: 24px;
-      line-height: 1.2;
-      margin-bottom: 40px;
-      text-shadow: 0 0 4px #fff, 0 0 10px #ff0;
+      font-size: 20px;
+      line-height: 1.4;
+      margin-bottom: 10px;
+      text-shadow: 0 0 4px #fff, 0 0 12px #0ff;
       opacity: 0;
+      will-change: opacity, transform;
     }
 
     .bracket-container {
       position: relative;
-      width: 800px;
-      max-width: 90%;
-      height: 500px;
+      width: 900px;
+      max-width: 95%;
+      height: 460px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
+
+    .side-label {
+      position: absolute;
+      top: 0;
+      font-size: 14px;
+      opacity: 0;
+      will-change: opacity;
+    }
+    .side-west { left: 10px; color: #0ff; text-shadow: 0 0 8px #0ff; }
+    .side-east { right: 10px; color: #f0a; text-shadow: 0 0 8px #f0a; }
 
     .match-card {
       position: absolute;
-      border: 2px solid #333;
-      background: #111;
-      padding: 6px 8px;
-      font-size: 12px;
-      box-shadow: 0 0 8px rgba(0,0,0,0.5);
+      border: 2px solid #444;
+      background: #0c0c0c;
+      padding: 5px 7px;
+      font-size: 10px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.5);
       opacity: 0;
-      transform: scale(0.8) translateY(20px);
+      transform: scale(0.8);
       will-change: transform, opacity;
       text-align: left;
-      min-width: 140px;
+      min-width: 130px;
+      z-index: 2;
     }
 
     .match-winner {
       border-color: #0f0;
-      background: #040;
+      background: #001200;
       color: #0f0;
-      box-shadow: 0 0 12px rgba(0,255,0,0.4);
+      box-shadow: 0 0 12px rgba(0,255,0,0.5);
+    }
+
+    .match-loser {
+      opacity: 0.25 !important;
+      filter: grayscale(1);
     }
 
     .match-final {
       border-color: #ff0;
-      background: #220;
+      background: #221800;
       color: #ff0;
-      box-shadow: 0 0 16px rgba(255,255,0,0.5);
+      box-shadow: 0 0 18px rgba(255,255,0,0.6);
+      font-size: 11px;
+      min-width: 150px;
     }
 
-    .vs-marker {
+    .player-expand {
       position: absolute;
-      font-size: 18px;
-      color: #555;
+      background: #0a0a0a;
+      border: 1px solid #555;
+      padding: 4px;
+      font-size: 7px;
+      line-height: 1.6;
       opacity: 0;
-      will-change: opacity;
+      z-index: 20;
+      will-change: opacity, transform;
+      white-space: nowrap;
+    }
+
+    .vs-flash {
+      position: absolute;
+      font-size: 16px;
+      color: #fff;
+      text-shadow: 0 0 10px #f00;
+      opacity: 0;
+      z-index: 15;
+      will-change: opacity, scale;
     }
 
     .prize-card {
       position: absolute;
-      width: 110px;
-      height: 110px;
+      width: 100px;
+      height: 100px;
       border: 3px solid #444;
-      background: #111;
+      background: #0a0a0a;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
+      font-size: 7px;
       opacity: 0;
-      transform: scale(0.5) translateY(60px);
+      transform: scale(0.5) translateY(50px);
       will-change: transform, opacity;
       box-shadow: 0 0 6px rgba(0,0,0,0.3);
+      z-index: 10;
+      text-align: center;
     }
-
     .prize-gold {
       border-color: #fc0;
-      box-shadow: 0 0 14px rgba(252,200,0,0.6);
+      box-shadow: 0 0 14px rgba(252,200,0,0.7);
     }
     .prize-silver {
-      border-color: #ccc;
-      box-shadow: 0 0 10px rgba(200,200,200,0.5);
+      border-color: #aaa;
+      box-shadow: 0 0 10px rgba(170,170,170,0.5);
     }
 
     .progress-bar-bg {
       position: absolute;
-      bottom: 20px;
+      bottom: 15px;
       left: 50%;
       transform: translateX(-50%);
-      width: 60%;
-      height: 8px;
-      background: #333;
+      width: 50%;
+      height: 6px;
+      background: #222;
       border: 1px solid #000;
+      z-index: 50;
     }
     .progress-bar-fill {
       height: 100%;
       width: 0%;
-      background: #0f0;
-      transition: width 0.1s linear;
+      background: linear-gradient(90deg, #0ff, #0f0);
+    }
+
+    .champion-banner {
+      position: absolute;
+      top: 35%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 18px;
+      color: #ff0;
+      text-shadow: 0 0 12px #ff0;
+      opacity: 0;
+      z-index: 30;
+      will-change: opacity, transform;
+      text-align: center;
+    }
+
+    .prize-row {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 14px;
+      z-index: 10;
     }
   </style>
 </head>
@@ -148,31 +209,50 @@
   <div class="crt-overlay"></div>
 
   <div id="stage">
-    <div class="title">PIXEL PLAYOFF<br>ПУТЬ К ПРИЗАМ</div>
+    <div class="title">PLAYOFF<br>ПУТЬ К ПРИЗАМ</div>
 
     <div class="bracket-container" id="bracket">
-      <!-- Сюда JS будет вставлять карточки матчей -->
+      <div class="side-label side-west" id="labelWest">◀ ЗАПАД</div>
+      <div class="side-label side-east" id="labelEast">ВОСТОК ▶</div>
     </div>
+
+    <div class="champion-banner" id="championBanner">👑 ЧЕМПИОН<br><span id="champName"></span></div>
+
+    <div class="prize-row" id="prizeRow"></div>
 
     <div class="progress-bar-bg">
       <div class="progress-bar-fill" id="progress"></div>
     </div>
   </div>
 
-  <!-- Подключаем Anime.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
   <script>
     const bracket = document.getElementById('bracket');
     const progress = document.getElementById('progress');
     const title = document.querySelector('.title');
+    const labelWest = document.getElementById('labelWest');
+    const labelEast = document.getElementById('labelEast');
+    const champBanner = document.getElementById('championBanner');
+    const champName = document.getElementById('champName');
+    const prizeRow = document.getElementById('prizeRow');
 
-    // Команды
-    const teams = [
-      'TEAM A', 'TEAM B', 'TEAM C', 'TEAM D',
-      'TEAM E', 'TEAM F', 'TEAM G', 'TEAM H'
+    // --- Данные ---
+    const teamNames = [
+      'NINJAS', 'DRAGONS', 'WOLVES', 'FALCONS',
+      'TITANS', 'SHARKS', 'VIPERS', 'KINGS'
     ];
 
-    // Призы
+    const playerNames = [
+      'Alex', 'Bond', 'Crux', 'Dart', 'Echo',
+      'Fury', 'Ghost', 'Hex', 'Iron', 'Jinx',
+      'Kael', 'Lynx', 'Maze', 'Nova', 'Onyx',
+      'Pray', 'Quin', 'Rush', 'Sage', 'Toxic',
+      'Umbra', 'Volt', 'Watt', 'Zero', 'Ash',
+      'Blaze', 'Cole', 'Dusk', 'Frost', 'Gale',
+      'Hawk', 'Ice', 'Jet', 'Kira', 'Lux',
+      'Max', 'Nyx', 'Orin', 'Pax', 'Rex'
+    ];
+
     const prizes = [
       { name: 'AK-47 Жгучая ярость', type: 'gold' },
       { name: 'AWP Зелёная энергия', type: 'gold' },
@@ -181,7 +261,6 @@
       { name: 'AK-47 Фантомный вредитель', type: 'normal' }
     ];
 
-    // Перемешать массив
     function shuffle(arr) {
       const a = [...arr];
       for (let i = a.length - 1; i > 0; i--) {
@@ -191,185 +270,422 @@
       return a;
     }
 
-    // Рандомный победитель
     function randomWinner(a, b) {
       return Math.random() > 0.5 ? a : b;
     }
 
-    // Создать карточку матча
-    function createMatchCard(id, teamA, teamB, isWinnerA, isFinal) {
+    // Генерация состава команды (5 игроков)
+    function genPlayers(teamName) {
+      const pool = shuffle(playerNames);
+      return pool.slice(0, 5).map(p => p + ' [' + teamName + ']');
+    }
+
+    // --- Создание команд с игроками ---
+    const shuffledTeams = shuffle(teamNames);
+    const westTeams = shuffledTeams.slice(0, 4);
+    const eastTeams = shuffledTeams.slice(4, 8);
+
+    // Каждой команде даём 5 игроков
+    const teams = {};
+    [...westTeams, ...eastTeams].forEach(t => {
+      teams[t] = { name: t, players: genPlayers(t) };
+    });
+
+    // --- Позиции в сетке ---
+    // Запад — слева, Восток — справа, идут навстречу друг другу
+    const W = 900, H = 460;
+    const cardW = 140;
+
+    const pos = {
+      // Запад: QF слева, SF ближе к центру, Final — в центре
+      wqf1: { top: 10,  left: 20 },
+      wqf2: { top: 110, left: 20 },
+      wqf3: { top: 220, left: 20 },
+      wqf4: { top: 330, left: 20 },
+      wsf1: { top: 60,  left: 180 },
+      wsf2: { top: 280, left: 180 },
+      // Восток: QF справа, SF ближе к центру
+      eqf1: { top: 10,  left: W - cardW - 20 },
+      eqf2: { top: 110, left: W - cardW - 20 },
+      eqf3: { top: 220, left: W - cardW - 20 },
+      eqf4: { top: 330, left: W - cardW - 20 },
+      esf1: { top: 60,  left: W - cardW - 180 },
+      esf2: { top: 280, left: W - cardW - 180 },
+      // Финал — по центру
+      final: { top: 170, left: (W - cardW) / 2 - 5 }
+    };
+
+    // --- SVG линии ---
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', '100%');
+    svg.style.position = 'absolute';
+    svg.style.top = 0;
+    svg.style.left = 0;
+    svg.style.pointerEvents = 'none';
+    svg.style.zIndex = 1;
+    bracket.appendChild(svg);
+
+    const svgLines = [];
+
+    function drawLine(x1, y1, x2, y2) {
+      const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      l.setAttribute('x1', x1); l.setAttribute('y1', y1);
+      l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+      l.setAttribute('stroke', '#333');
+      l.setAttribute('stroke-width', 2);
+      l.setAttribute('opacity', 0);
+      svg.appendChild(l);
+      svgLines.push(l);
+      return l;
+    }
+
+    // Линии: Запад QF → SF
+    drawLine(160, 35,  180, 80);
+    drawLine(160, 135, 180, 80);
+    drawLine(160, 245, 180, 300);
+    drawLine(160, 355, 180, 300);
+    // Запад SF → Final
+    drawLine(320, 80,  430, 200);
+    drawLine(320, 300, 430, 200);
+    // Линии: Восток QF → SF (зеркально)
+    drawLine(W - 160, 35,  W - 180, 80);
+    drawLine(W - 160, 135, W - 180, 80);
+    drawLine(W - 160, 245, W - 180, 300);
+    drawLine(W - 160, 355, W - 180, 300);
+    // Восток SF → Final
+    drawLine(W - 320, 80,  W - 430, 200);
+    drawLine(W - 320, 300, W - 430, 200);
+
+    // --- Создание карточек матчей ---
+    let matchId = 0;
+
+    function createMatch(teamA, teamB, posKey, isFinal) {
+      const p = pos[posKey];
       const card = document.createElement('div');
-      card.className = 'match-card' + (isWinnerA ? ' match-winner' : '') + (isFinal ? ' match-final' : '');
-      card.id = 'match-' + id;
+      card.className = 'match-card' + (isFinal ? ' match-final' : '');
+      card.id = 'match-' + matchId++;
+      card.style.top = p.top + 'px';
+      card.style.left = p.left + 'px';
       card.innerHTML = `
-        <div>${teamA}</div>
-        <div style="color:#555">VS</div>
-        <div>${teamB}</div>
+        <div class="team-a">${teamA}</div>
+        <div style="color:#666;text-align:center">VS</div>
+        <div class="team-b">${teamB}</div>
       `;
+      bracket.appendChild(card);
       return card;
     }
 
-    // Позиции для сетки (упрощённо)
-    const positions = {
-      qf1: { top: 40, left: 40 },
-      qf2: { top: 170, left: 40 },
-      qf3: { top: 300, left: 40 },
-      qf4: { top: 430, left: 40 },
+    // --- Четвертьфиналы ---
+    const wqf1 = createMatch(westTeams[0], westTeams[1], 'wqf1', false);
+    const wqf2 = createMatch(westTeams[2], westTeams[3], 'wqf2', false);
+    const wqf3 = createMatch(westTeams[0], westTeams[1], 'wqf3', false);  // temp
+    const wqf4 = createMatch(westTeams[2], westTeams[3], 'wqf4', false);  // temp
 
-      sf1: { top: 105, left: 260 },
-      sf2: { top: 365, left: 260 },
+    // Перетасовка: западные QF перемешиваем
+    const westQFpairs = [
+      [westTeams[0], westTeams[1]],
+      [westTeams[2], westTeams[3]]
+    ];
+    // Перетасуем пары и команды внутри пар
+    const westShuffled = shuffle(westQFpairs.map(pair => shuffle(pair)));
 
-      final: { top: 235, left: 520 }
-    };
+    // Перепишем карточки QF
+    wqf1.querySelector('.team-a').textContent = westShuffled[0][0];
+    wqf1.querySelector('.team-b').textContent = westShuffled[0][1];
+    wqf2.querySelector('.team-a').textContent = westShuffled[1][0];
+    wqf2.querySelector('.team-b').textContent = westShuffled[1][1];
 
-    function initBracket() {
-      // Перемешиваем команды
-      const shuffled = shuffle(teams);
+    // Аналогично восток
+    const eastQFpairs = [
+      [eastTeams[0], eastTeams[1]],
+      [eastTeams[2], eastTeams[3]]
+    ];
+    const eastShuffled = shuffle(eastQFpairs.map(pair => shuffle(pair)));
 
-      // Четвертьфиналы
-      const qf1 = createMatchCard('qf1', shuffled[0], shuffled[1], true, false);
-      const qf2 = createMatchCard('qf2', shuffled[2], shuffled[3], false, false);
-      const qf3 = createMatchCard('qf3', shuffled[4], shuffled[5], true, false);
-      const qf4 = createMatchCard('qf4', shuffled[6], shuffled[7], false, false);
+    const eqf1 = createMatch(eastShuffled[0][0], eastShuffled[0][1], 'eqf1', false);
+    const eqf2 = createMatch(eastShuffled[1][0], eastShuffled[1][1], 'eqf2', false);
+    const eqf3 = createMatch(eastShuffled[0][0], eastShuffled[0][1], 'eqf3', false); // temp
+    const eqf4 = createMatch(eastShuffled[1][0], eastShuffled[1][1], 'eqf4', false); // temp
 
-      bracket.appendChild(qf1);
-      bracket.appendChild(qf2);
-      bracket.appendChild(qf3);
-      bracket.appendChild(qf4);
+    // Удаляем лишние temp-карточки (wqf3, wqf4, eqf3, eqf4)
+    wqf3.remove();
+    wqf4.remove();
+    eqf3.remove();
+    eqf4.remove();
 
-      // Полуфиналы (рандомные победители)
-      const sf1Winner = randomWinner(shuffled[0], shuffled[1]);
-      const sf2Winner = randomWinner(shuffled[2], shuffled[3]);
-      const sf3Winner = randomWinner(shuffled[4], shuffled[5]);
-      const sf4Winner = randomWinner(shuffled[6], shuffled[7]);
+    // --- Определение победителей QF ---
+    const wqf1Winner = randomWinner(westShuffled[0][0], westShuffled[0][1]);
+    const wqf2Winner = randomWinner(westShuffled[1][0], westShuffled[1][1]);
+    const eqf1Winner = randomWinner(eastShuffled[0][0], eastShuffled[0][1]);
+    const eqf2Winner = randomWinner(eastShuffled[1][0], eastShuffled[1][1]);
 
-      const sf1 = createMatchCard('sf1', sf1Winner, sf2Winner, true, false);
-      const sf2 = createMatchCard('sf2', sf3Winner, sf4Winner, false, false);
-      bracket.appendChild(sf1);
-      bracket.appendChild(sf2);
+    // --- Полуфиналы: перетасовка победителей QF ---
+    const westSFpool = shuffle([wqf1Winner, wqf2Winner]);
+    const eastSFpool = shuffle([eqf1Winner, eqf2Winner]);
 
-      // Финал
-      const finalWinner = randomWinner(sf1Winner, sf3Winner); // упрощение
-      const finalCard = createMatchCard('final', sf1Winner, sf3Winner, finalWinner === sf1Winner, true);
-      bracket.appendChild(finalCard);
+    const wsf1 = createMatch(westSFpool[0], westSFpool[1], 'wsf1', false);
+    const wsf2 = createMatch(westSFpool[0], westSFpool[1], 'wsf2', false);
+    wsf2.remove(); // заглушка, убираем
+    // У запада 2 SF матча, но т.к. 4 команды → 2 QF → 2 победителя → 1 SF
+    // На самом деле: 4 команды → 2 QF → 2 победителя → 1 SF (2 победителя встречаются)
+    // Но по структуре "навстречу" — на каждой стороне 2 QF → 1 SF
+    // Уберём wsf2, оставим один SF на сторону
+    wsf1.querySelector('.team-a').textContent = westSFpool[0];
+    wsf1.querySelector('.team-b').textContent = westSFpool[1];
 
-      // Привязываем позиции
-      const ids = ['qf1','qf2','qf3','qf4','sf1','sf2','final'];
-      ids.forEach(id => {
-        const el = document.getElementById('match-' + id);
-        const p = positions[id];
-        el.style.top = p.top + 'px';
-        el.style.left = p.left + 'px';
+    const esf1 = createMatch(eastSFpool[0], eastSFpool[1], 'esf1', false);
+
+    // --- Финал ---
+    const westChamp = randomWinner(westSFpool[0], westSFpool[1]);
+    const eastChamp = randomWinner(eastSFpool[0], eastSFpool[1]);
+
+    const finalCard = createMatch(westChamp, eastChamp, 'final', true);
+
+    // --- Чемпион ---
+    const champion = randomWinner(westChamp, eastChamp);
+    champName.textContent = champion + '!';
+
+    // --- Функция "раскрытия" команды (5 на 5) ---
+    function showPlayerExpand(card, teamAName, teamBName) {
+      const rect = card.getBoundingClientRect();
+      const bracketRect = bracket.getBoundingClientRect();
+
+      const expand = document.createElement('div');
+      expand.className = 'player-expand';
+      expand.style.left = (parseInt(card.style.left) + cardW + 8) + 'px';
+      expand.style.top = (parseInt(card.style.top) - 10) + 'px';
+
+      const playersA = teams[teamAName].players;
+      const playersB = teams[teamBName].players;
+
+      let html = '<div style="color:#0ff;font-size:8px;margin-bottom:3px">' + teamAName + ' (5)</div>';
+      playersA.forEach(p => { html += '<div style="color:#0af">' + p + '</div>'; });
+      html += '<div style="color:#666;margin:3px 0">--- VS ---</div>';
+      html += '<div style="color:#f0a;font-size:8px;margin-bottom:3px">' + teamBName + ' (5)</div>';
+      playersB.forEach(p => { html += '<div style="color:#f55">' + p + '</div>'; });
+
+      expand.innerHTML = html;
+      bracket.appendChild(expand);
+
+      anime({
+        targets: expand,
+        opacity: [0, 1],
+        scale: [0.8, 1],
+        duration: 300,
+        easing: 'easeOutQuad'
       });
 
-      // Рисуем линии (SVG)
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.setAttribute('width', '100%');
-      svg.setAttribute('height', '100%');
-      svg.style.position = 'absolute';
-      svg.style.top = 0;
-      svg.style.left = 0;
-      svg.style.pointerEvents = 'none';
-      svg.style.zIndex = 0;
-      bracket.appendChild(svg);
-
-      function line(x1, y1, x2, y2) {
-        const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        l.setAttribute('x1', x1); l.setAttribute('y1', y1);
-        l.setAttribute('x2', x2); l.setAttribute('y2', y2);
-        l.setAttribute('stroke', '#333');
-        l.setAttribute('stroke-width', 2);
-        l.setAttribute('opacity', 0);
-        svg.appendChild(l);
-        return l;
-      }
-
-      // QF → SF
-      line(180, 95, 260, 125);
-      line(180, 225, 260, 125);
-      line(180, 355, 260, 385);
-      line(180, 485, 260, 385);
-
-      // SF → Final
-      line(400, 155, 520, 255);
-      line(400, 415, 520, 255);
-
-      return { qf1, qf2, qf3, qf4, sf1, sf2, finalCard, svg };
+      return expand;
     }
 
-    const elements = initBracket();
+    function hidePlayerExpand(expand) {
+      anime({
+        targets: expand,
+        opacity: 0,
+        scale: 0.8,
+        duration: 200,
+        easing: 'easeInQuad',
+        complete: () => expand.remove()
+      });
+    }
 
-    // Анимация
+    // --- Подсветка победителя/проигравшего ---
+    function markWinner(card, winnerName) {
+      const teamA = card.querySelector('.team-a');
+      const teamB = card.querySelector('.team-b');
+      if (teamA.textContent === winnerName) {
+        teamA.style.color = '#0f0';
+        teamA.style.textShadow = '0 0 6px #0f0';
+        teamB.style.opacity = '0.3';
+      } else {
+        teamB.style.color = '#0f0';
+        teamB.style.textShadow = '0 0 6px #0f0';
+        teamA.style.opacity = '0.3';
+      }
+      card.classList.add('match-winner');
+    }
+
+    // --- VS Flash ---
+    function createVSFlash(card) {
+      const vs = document.createElement('div');
+      vs.className = 'vs-flash';
+      vs.textContent = 'VS!';
+      vs.style.left = (parseInt(card.style.left) + 40) + 'px';
+      vs.style.top = (parseInt(card.style.top) + 30) + 'px';
+      bracket.appendChild(vs);
+      anime({
+        targets: vs,
+        opacity: [0, 1, 0],
+        scale: [0.5, 1.5, 1],
+        duration: 400,
+        easing: 'easeOutQuad',
+        complete: () => vs.remove()
+      });
+    }
+
+    // --- Анимация ---
+    const allCards = document.querySelectorAll('.match-card');
+    const allLines = svgLines;
+
+    // === TIMELINE ===
     const tl = anime.timeline({
       easing: 'easeOutQuad',
-      duration: 1000
+      duration: 500
     });
 
-    // 0–2 сек: заголовок
+    // 0:00–0:01 — Заголовок + метки сторон
     tl.add({
-      targets: title,
+      targets: [title, labelWest, labelEast],
       opacity: [0, 1],
       scale: [0.8, 1],
-      delay: 200
-    })
-    .add({
-      targets: '.match-card',
-      opacity: [0, 1],
-      translateY: [20, 0],
-      delay: (el, i) => 300 + i * 150
-    }, '-=800')
-    .add({
-      targets: 'line',
-      opacity: [0, 1],
-      strokeDashoffset: [anime.path('line'), 0], // простой эффект рисования
-      duration: 1200,
-      easing: 'linear'
-    }, '-=600');
+      duration: 500,
+      delay: anime.stagger(80)
+    });
 
-    // 4–6 сек: полуфиналы и финал
+    // 0:01–0:02 — Четвертьфиналы появляются
     tl.add({
-      targets: [elements.sf1, elements.sf2, elements.finalCard],
-      scale: [1, 1.1, 1],
-      loop: 2,
-      duration: 600,
-      easing: 'easeInOutSine'
-    }, '-=400');
+      targets: [wqf1, wqf2, eqf1, eqf2],
+      opacity: [0, 1],
+      scale: [0.8, 1],
+      duration: 300,
+      delay: anime.stagger(100),
+      complete: function() {
+        // Раскрытие 5 на 5 для каждого QF
+        const e1 = showPlayerExpand(wqf1, wqf1.querySelector('.team-a').textContent, wqf1.querySelector('.team-b').textContent);
+        setTimeout(() => hidePlayerExpand(e1), 400);
 
-    // 7–8 сек: прогресс-бар
+        const e2 = showPlayerExpand(eqf1, eqf1.querySelector('.team-a').textContent, eqf1.querySelector('.team-b').textContent);
+        setTimeout(() => hidePlayerExpand(e2), 400);
+      }
+    });
+
+    // VS Flash + определение победителей QF
     tl.add({
-      targets: progress,
-      width: ['0%', '100%'],
-      duration: 2000,
+      targets: [],
+      duration: 300,
+      begin: function() {
+        createVSFlash(wqf1);
+        createVSFlash(eqf1);
+      }
+    });
+
+    // Линии QF→SF
+    tl.add({
+      targets: allLines,
+      opacity: [0, 1],
+      duration: 300,
       easing: 'linear'
-    }, '-=1000');
+    });
 
-    // 8–10 сек: призы
-    const prizeContainer = document.createElement('div');
-    prizeContainer.style.position = 'absolute';
-    prizeContainer.style.bottom = '140px';
-    prizeContainer.style.left = '50%';
-    prizeContainer.style.transform = 'translateX(-50%)';
-    prizeContainer.style.display = 'flex';
-    prizeContainer.style.gap = '20px';
-    document.body.appendChild(prizeContainer);
+    // Подсветка победителей QF
+    tl.add({
+      targets: [],
+      duration: 200,
+      begin: function() {
+        markWinner(wqf1, wqf1Winner);
+        markWinner(wqf2, wqf2Winner);
+        markWinner(eqf1, eqf1Winner);
+        markWinner(eqf2, eqf2Winner);
+      }
+    });
 
+    // 0:02–0:03 — Полуфиналы (перетасованные команды)
+    tl.add({
+      targets: [wsf1, esf1],
+      opacity: [0, 1],
+      scale: [0.8, 1],
+      duration: 300,
+      delay: anime.stagger(80),
+      complete: function() {
+        // Раскрытие 5 на 5 для SF
+        const e = showPlayerExpand(wsf1, wsf1.querySelector('.team-a').textContent, wsf1.querySelector('.team-b').textContent);
+        setTimeout(() => hidePlayerExpand(e), 300);
+      }
+    });
+
+    // VS Flash SF + определение победителей
+    tl.add({
+      targets: [],
+      duration: 200,
+      begin: function() {
+        createVSFlash(wsf1);
+        createVSFlash(esf1);
+      }
+    });
+
+    tl.add({
+      targets: [],
+      duration: 200,
+      begin: function() {
+        markWinner(wsf1, westChamp);
+        markWinner(esf1, eastChamp);
+      }
+    });
+
+    // 0:03–0:04 — Финал
+    tl.add({
+      targets: finalCard,
+      opacity: [0, 1],
+      scale: [0.5, 1],
+      duration: 300,
+      easing: 'easeOutBack'
+    });
+
+    tl.add({
+      targets: [],
+      duration: 200,
+      begin: function() {
+        createVSFlash(finalCard);
+        const e = showPlayerExpand(finalCard, westChamp, eastChamp);
+        setTimeout(() => hidePlayerExpand(e), 300);
+      }
+    });
+
+    // Подсветка победителя финала
+    tl.add({
+      targets: [],
+      duration: 200,
+      begin: function() {
+        markWinner(finalCard, champion);
+      }
+    });
+
+    // 0:04–0:05 — Чемпион + призы
+    tl.add({
+      targets: champBanner,
+      opacity: [0, 1],
+      scale: [0.5, 1],
+      duration: 300,
+      easing: 'easeOutBack'
+    });
+
+    // Призы
     const shuffledPrizes = shuffle(prizes);
     shuffledPrizes.forEach((p, i) => {
       const pc = document.createElement('div');
-      pc.className = `prize-card prize-${p.type}`;
-      pc.innerHTML = `<div style="font-size:10px">${p.name.split(' ').slice(0,2).join(' ')}</div><div style="font-size:8px">${p.name.split(' ').slice(2).join(' ')}</div>`;
-      prizeContainer.appendChild(pc);
+      pc.className = 'prize-card prize-' + p.type;
+      const parts = p.name.split(' ');
+      pc.innerHTML = parts[0] + '<br>' + (parts.slice(1).join(' '));
+      prizeRow.appendChild(pc);
 
       tl.add({
         targets: pc,
         opacity: [0, 1],
         scale: [0.5, 1],
-        translateY: [60, 0],
-        delay: i * 200,
-        duration: 400,
+        translateY: [50, 0],
+        duration: 200,
         easing: 'easeOutBack'
-      }, '-=500');
+      }, '-=100');
     });
+
+    // Прогресс-бар
+    tl.add({
+      targets: progress,
+      width: ['0%', '100%'],
+      duration: 5000,
+      easing: 'linear'
+    }, 0);
 
     tl.play();
   </script>
