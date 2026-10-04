@@ -27,7 +27,6 @@
     function WebGLRenderer(p){var _c=p.canvas;var _ctx=_c.getContext('2d');this.setSize=function(w,h){_c.width=w;_c.height=h;};
     this.render=function(s,cam){
         _ctx.clearRect(0,0,_c.width,_c.height);var cx=_c.width/2,cy=_c.height/2;
-        // Получаем Z камеры для расчета масштаба проекции (эффект зума)
         var camZ = cam.position.z;
         for(var i=0;i<s.children.length;i++){
             var obj=s.children[i];if(!obj||!obj.geometry)continue;
@@ -35,7 +34,6 @@
             var rotY=obj.rotation.y;var cos=Math.cos(rotY),sin=Math.sin(rotY);
             for(var j=0;j<pos.length;j+=3){
                 var rx=pos[j]*cos-pos[j+2]*sin;var rz=pos[j+2]*cos+pos[j]*sin;
-                // Базовый фокус подстраивается под изменяющееся расстояние camZ
                 var p=400/(400+(rz + (5 - camZ)*20)*20);
                 var sx=cx+rx*140*p;var sy=cy+pos[j+1]*140*p;
                 if(sx>=0&&sx<=_c.width&&sy>=0&&sy<=_c.height){
@@ -101,7 +99,6 @@
         const sizes = { width: window.innerWidth, height: window.innerHeight };
         const camera = new THREE.PerspectiveCamera();
         
-        // Базовая позиция по Z
         camera.position.z = 5; 
         
         const renderer = new THREE.WebGLRenderer({ canvas: canvas });
@@ -193,15 +190,14 @@
                 const posArray = points.geometry.attributes.position.array;
                 const time = clock.getElapsedTime();
 
-                // ИСПРАВЛЕНО: Добавлен волновой зум камеры вперед-назад по оси Z
-                camera.position.z = 5 + Math.sin(time * 1.5) * 1.8; 
+                // ИСПРАВЛЕНО: Скорость пульсации зума (частота синуса) уменьшена в 4 раза (с 1.5 до 0.375)
+                camera.position.z = 5 + Math.sin(time * 0.375) * 1.8; 
 
                 for (let i = 0; i < posArray.length; i += 3) {
                     const tx = targetPositions[i];
                     const ty = targetPositions[i+1];
                     const tz = targetPositions[i+2];
 
-                    // Спиральная закрутка частиц
                     const distance = Math.sqrt(tx*tx + ty*ty);
                     const angle = time * 1.8 + distance * 0.7; 
                     
@@ -214,7 +210,6 @@
                 }
                 points.geometry.attributes.position.needsUpdate = true;
                 
-                // Легкий поворот всей галактики
                 points.rotation.y = Math.sin(time * 0.3) * 0.1; 
             }
             renderer.render(scene, camera);
